@@ -9,14 +9,16 @@ uint32_t ZMotorPin = 26;
 uint32_t XMotorDirPin = 19;
 uint32_t YMotorDirPin = 20;
 
-uint32_t motorSpeedX = 5000;
-uint32_t motorSpeedY = 500;
-uint32_t motorSpeedZ = 5000;
-uint32_t pulsesPerUnitX = 400;
+uint32_t motorSpeedX = 1000;
+uint32_t motorSpeedY = 250;
+uint32_t motorSpeedZ = 6000;
+uint32_t pulsesPerUnitX = 1500;
 uint32_t pulsesPerUnitY = 1200;
+uint32_t pulsesPerLiftY = 3600;
+uint32_t pulsesPerFullStepY = 17850;
 uint32_t pulsesPerUnitZ = 100;
 
-void move(uint32_t h, uint32_t motorPin, uint32_t motorDirPin, uint32_t direction)
+void move(uint32_t h, uint32_t motorPin, uint32_t motorDirPin, uint32_t direction, uint32_t lift)
 {
     uint32_t pulseCount = 0;
     uint32_t motorSpeed = 0;
@@ -28,8 +30,15 @@ void move(uint32_t h, uint32_t motorPin, uint32_t motorDirPin, uint32_t directio
     }
     else if (motorPin == YMotorPin)
     {
+        if(lift)
+        {
+            pulseCount = pulsesPerLiftY;
+        }
+        else
+        {            
+            pulseCount = pulsesPerFullStepY;
+        }
         motorSpeed = motorSpeedY;
-        pulseCount = pulsesPerUnitY;
     }
     else if (motorPin == ZMotorPin)
     {
@@ -37,8 +46,11 @@ void move(uint32_t h, uint32_t motorPin, uint32_t motorDirPin, uint32_t directio
         pulseCount = pulsesPerUnitZ;
     }
 
-    lgGpioWrite(h, motorDirPin, direction);
-    usleep(10);
+    if(motorPin != ZMotorPin)
+    {
+        lgGpioWrite(h, motorDirPin, direction);
+        usleep(10);
+    }
 
     for(uint32_t i = 0; i < pulseCount; i++)
     {
@@ -68,25 +80,25 @@ int main()
 
     if (status == LG_OKAY)
     {
-        printf("lines=%d name=%s label=%s\n",
-        cInfo.lines, cInfo.name, cInfo.label);
+        // printf("lines=%d name=%s label=%s\n",
+        // cInfo.lines, cInfo.name, cInfo.label);
     }
     else
     {
         printf("Did not successfully\n");
     }
 
-    lgLineInfo_t lInfo;
-    for(int gpio = 0; gpio < 54; gpio++)
-    {
-        status = lgGpioGetLineInfo(h, gpio, &lInfo);
+    // lgLineInfo_t lInfo;
+    // for(int gpio = 0; gpio < 54; gpio++)
+    // {
+    //     status = lgGpioGetLineInfo(h, gpio, &lInfo);
 
-        if (status == LG_OKAY)
-        {
-            printf("lFlags=%d name=%s user=%s\n",
-            lInfo.lFlags, lInfo.name, lInfo.user);
-        }
-    }
+    //     if (status == LG_OKAY)
+    //     {
+    //         printf("lFlags=%d name=%s user=%s\n",
+    //         lInfo.lFlags, lInfo.name, lInfo.user);
+    //     }
+    // }
     
     status = lgGpioClaimOutput(h, 0, XMotorPin, 0);
     if(status != LG_OKAY) { printf("Error: status non 0\n"); }
@@ -100,35 +112,70 @@ int main()
     if(status != LG_OKAY) { printf("Error: status non 0\n"); }
 
     char sel;
-    char dir;
+    uint32_t dir;
     uint32_t motorPin = 0;
     uint32_t motorDirPin = 0;
-
-    printf("Select Motor\n");
-    std::cin >> sel;
-    std::cin >> dir;
-    printf("Read %c and %c\n", sel, dir);
-
-    if(sel == 'x')
+    uint32_t lift = 0;
+    for(;;)
     {
-        motorPin = XMotorPin;
-        motorDirPin = XMotorDirPin;
+        printf("Enter Charactor Command \nx (Move X Motor)\ny (Move Y Motor)\nz (Move Z Motor)\nr (Start Demo Routine)\n");
+        std::cin >> sel;
+        printf("Enter Direction Command \n1 (Positive Direction) \n0 (Negative Direction)\n");
+        std::cin >> dir;
+        lift = 0;
+        printf("Read %c and %d\n", sel, dir);
+
+        if(sel == 'x')
+        {
+            motorPin = XMotorPin;
+            motorDirPin = XMotorDirPin;
+        }
+        else if (sel == 'y')
+        {
+            motorPin = YMotorPin;
+            motorDirPin = YMotorDirPin;
+        }
+        else if(sel == 'z')
+        {
+            motorPin = ZMotorPin;
+        }
+        else if(sel == 'l')
+        {
+            motorPin = YMotorPin;
+            motorDirPin = YMotorDirPin;
+            lift = 1;
+        }
+        else if(sel == 'r')
+        {
+            //Extend Z
+            move(h, ZMotorPin, YMotorDirPin, 0, 0);
+            // Lift on Y
+            move(h, YMotorPin, YMotorDirPin, 1, 1);
+            // Retract Z
+            move(h, ZMotorPin, YMotorDirPin, 0, 0);
+            // Move Y Full Step
+            move(h, YMotorPin, YMotorDirPin, dir, 0);
+            // Move along X 
+            move(h, XMotorPin, XMotorDirPin, !dir, 0);
+            move(h, XMotorPin, XMotorDirPin, !dir, 0);
+            // Extend Z
+            move(h, ZMotorPin, YMotorDirPin, 0, 0);
+            // Put down box
+            move(h, YMotorPin, YMotorDirPin, 0, 1);
+            // Retract Z
+            move(h, ZMotorPin, YMotorDirPin, 0, 0);
+        }
+        else if(sel == 'u')
+        {
+
+        }
+        if(sel != 'r' && sel != 'u')
+        {
+            // printf("motorPin: %d\nmotorDirPin: %d\n", motorPin, motorDirPin);
+            move(h, motorPin, motorDirPin, dir, lift);
+        }
+
     }
-    else if (sel == 'y')
-    {
-        motorPin = YMotorPin;
-        motorDirPin = YMotorDirPin;
-    }
-    else if(sel == 'z')
-    {
-        motorPin = ZMotorPin;
-        motorDirPin = ZMotorDirPin;
-    }
 
-    
-
-
-
-    
     return 0;
 }
