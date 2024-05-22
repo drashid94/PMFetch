@@ -6,8 +6,8 @@
 
 class Grid {
 public:
-	Grid(int xdimensions, int ydimensions, int pulsesPerUnit);
-	//ErrorCode moveMedicine(const std::string& barcodeUPC, const std::string& destination);
+	//Grid(int xdimensions, int ydimensions, int pulsesPerUnit);
+	Grid(MedicineDatabase& medicineDatabaseIn, int xdimensions, int ydimensions, int numUnitsX, int numUnitsY);
 	int getPulsesPerUnitX() const;
 	int getPulsesPerUnitY() const;
 	int getLocationX(const std::string& barcodeUPC) const;
@@ -15,15 +15,15 @@ public:
 
 	bool IsSlotEmpty(int x, int y); // include some error check to ensure x and y are within bounds
 
-	ErrorCode addToShelf(const Medicine& medication); // calls move from motor unit
-	ErrorCode retrieveMedicine(const int barcodeUPC) = 0; // calls move from motor unit
+	uint32_t addToShelf(const Medicine& medication); // calls move from motor unit
+	uint32_t retrieveMedicine(const int barcodeUPC); // calls move from motor unit
 
 
 private:
 	int pulsesPerUnitX;
 	int pulsesPerUnitY;
 	vector<Medicine> medicineDatabase_; // populated by calling getAllMedicines() from medicine database?
-	Medicine* gridContainers [5][5]; //adjust size based on actual number of rows and columns in shelf
+	Medicine* gridContainers [5][5]; //TODO adjust size based on actual number of rows and columns in shelf
 };
 
 #endif // GRID_H

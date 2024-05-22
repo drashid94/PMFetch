@@ -7,7 +7,7 @@
 
 class Control {
 public:
-    ErrorCode calibrate();
+    int calibrate();
     // more control functions to be added
 };
 

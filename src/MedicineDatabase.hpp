@@ -17,10 +17,11 @@ struct Medicine {
 
 class MedicineDatabase {
   public:
-    const Medicine& searchMedicine(const string namePartial) const = 0;
-    const Medicine& searchMedicine(const int barcodeUPC) const = 0;
+    MedicineDatabase (const string& filename); //assuming database is in json format as in software design spec
+    const Medicine& searchMedicine(const string namePartial) const;
+    const Medicine& searchMedicine(const int barcodeUPC) const;
     vector<Medicine> getAllMedicines() const = 0; // returns allMedicines, likely to the grid
-    ErrorCode loadFromJSON(const string& filename) = 0; // loads allMedicines vector
+    int loadFromJSON(const string& filename) = 0; // loads allMedicines vector - assuming database is in json format as in software design spec
 
   private:
     vector<Medicine> allMedicines;
