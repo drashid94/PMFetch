@@ -2,9 +2,6 @@
  - calibration func
 */
 
-#ifndef CONTROL_H
-#define CONTROL_H
-
 //#include "Grid.h"
 #include "errors.hpp"
 
