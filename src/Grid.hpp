@@ -7,7 +7,7 @@
 class Grid {
 public:
 	//Grid(int xdimensions, int ydimensions, int pulsesPerUnit);
-	Grid(MedicineDatabase& medicineDatabaseIn, int xdimensions, int ydimensions, int numUnitsX, int numUnitsY);
+	Grid(Motor& motorUnitIn, MedicineDatabase& medicineDatabaseIn, int xdimensions, int ydimensions, int numUnitsX, int numUnitsY);
 	int getPulsesPerUnitX() const;
 	int getPulsesPerUnitY() const;
 	int getLocationX(const std::string& barcodeUPC) const;
@@ -22,7 +22,8 @@ public:
 private:
 	int pulsesPerUnitX;
 	int pulsesPerUnitY;
-	vector<Medicine> medicineDatabase_; // populated by calling getAllMedicines() from medicine database?
+	Motor* motorUnit;
+	vector<Medicine>* medicineDatabase; // populated by calling getAllMedicines() from medicine database?
 	Medicine* gridContainers [5][5]; //TODO adjust size based on actual number of rows and columns in shelf
 };
 
