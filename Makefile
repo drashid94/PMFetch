@@ -8,7 +8,7 @@ CXX = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra -pedantic
 
 # Source files (adjust as needed)
-SOURCES = src/Motor.cpp
+SOURCES = src/Control.cpp src/Grid.cpp src/MedicineDatabase.cpp src/Motor.cpp
 
 # Object files (created during compilation)
 OBJECTS = $(SOURCES:.cpp=.o)

@@ -3,6 +3,7 @@
 
 #include <lgpio.h>
 #include <stdint>
+#include "errors.hpp"
 
 // Define motor pin constants
 #define X_MOTOR_PIN 13
@@ -13,12 +14,17 @@
 #define X_MOTOR_DIR_PIN 19
 #define Y_MOTOR_DIR_PIN 20
 
+// TODO Define pulses_per_centimeter x and y. Placeholder values rn
+#define X_PULSES_PER_CENTIMETER 2
+#define Y_PULSES_PER_CENTIMETER 2
+
 class Motor
 {
     public:
         Motor();
         // Function to move a motor
-        void move(uint32_t handle, uint32_t motorPin, uint32_t motorDirPin, uint32_t direction, uint32_t lift);
+        uint32_t move(uint32_t motorPin, uint32_t motorDirPin, uint32_t direction, uint32_t pulses, uint32_t motorSpeed);
+        //void move(uint32_t handle, uint32_t motorPin, uint32_t motorDirPin, uint32_t direction, uint32_t lift);
         uint32_t motorSetup();
 
     private:
