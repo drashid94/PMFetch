@@ -2,7 +2,7 @@
 #define MOTOR_H
 
 #include <lgpio.h>
-#include <stdint>
+#include <stdint.h>
 #include "errors.hpp"
 
 // Define motor pin constants

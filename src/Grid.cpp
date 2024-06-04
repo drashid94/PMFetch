@@ -10,7 +10,7 @@
 
 #include "Grid.hpp"
 
-Grid::Grid(Motor& motorUnitIn, MedicineDatabase& medicineDatabaseIn, int xdimensions, int ydimensions, int numUnitsX, int numUnitsY)
+Grid::Grid(Motor* motorUnitIn, MedicineDatabase* medicineDatabaseIn, int xdimensions, int ydimensions, int numUnitsX, int numUnitsY)
 {
     if (xdimensions <= 0 || ydimensions <= 0 || numUnitsX <= 0 || numUnitsY <= 0) {
 		//return out of bounds grid error
@@ -25,22 +25,24 @@ Grid::Grid(Motor& motorUnitIn, MedicineDatabase& medicineDatabaseIn, int xdimens
 	// populate gridContainers[][] by running through medicine database and loading medicines with non-zero x and y coordinates?
   }
 
-int Grid::getPulsesPerUnitX() const {
+uint32_t Grid::getPulsesPerUnitX() const {
 	return pulsesPerUnitX;
 }
 
-int Grid::getPulsesPerUnitY() const {
+uint32_t Grid::getPulsesPerUnitY() const {
 	return pulsesPerUnitY;
 }
 
-int Grid::getLocationX(const std::string& barcodeUPC) const {
+uint32_t Grid::getLocationX(const std::string& barcodeUPC) const {
 	// search gridContainers for barcodeUPC. If found return x position
 	// or search MedicineDatabase and return x_coordinate from the medicine struct
+	return SUCCESS;
 }
 
-int Grid::getLocationY(const std::string& barcodeUPC) const {
+uint32_t Grid::getLocationY(const std::string& barcodeUPC) const {
 	// search gridContainers for barcodeUPC. If found return x position
 	// or search MedicineDatabase and return x_coordinate from the medicine struct
+	return SUCCESS;
 }
 
 bool Grid::IsSlotEmpty(int x, int y) {
@@ -52,6 +54,7 @@ uint32_t Grid::addToShelf(const Medicine& medication) {
 	// call move sequence for picking up drop off container and placing in new position
 	// update gridContainer
 	// update medicine database to include x and y coordinates for the medicine
+	return SUCCESS;
 }
 
 uint32_t Grid::retrieveMedicine(const int barcodeUPC) {
@@ -59,6 +62,7 @@ uint32_t Grid::retrieveMedicine(const int barcodeUPC) {
 	// calculate pulses and directions
 	// call move sequence for retrieving container and placing in pick up spot
 	// update gridcontainer? do we remove entirely from grid?
+	return SUCCESS;
 }
 
 /*//         if(sel == 'x')

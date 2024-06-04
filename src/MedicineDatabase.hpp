@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <string>
-#include "errors.h"
+#include "errors.hpp"
 using namespace std;
 
 struct Medicine {
@@ -20,8 +20,8 @@ class MedicineDatabase {
     MedicineDatabase (const string& filename); //assuming database is in json format as in software design spec
     const Medicine& searchMedicine(const string namePartial) const;
     const Medicine& searchMedicine(const int barcodeUPC) const;
-    vector<Medicine> getAllMedicines() const = 0; // returns allMedicines, likely to the grid
-    int loadFromJSON(const string& filename) = 0; // loads allMedicines vector - assuming database is in json format as in software design spec
+    vector<Medicine>* getAllMedicines() const; // returns allMedicines, likely to the grid
+    int loadFromJSON(const string& filename); // loads allMedicines vector - assuming database is in json format as in software design spec
 
   private:
     vector<Medicine> allMedicines;

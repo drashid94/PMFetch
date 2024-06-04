@@ -67,6 +67,7 @@ uint32_t Motor::move(uint32_t motorPin, uint32_t motorDirPin, uint32_t direction
         lgGpioWrite(h, motorPin, 0);
         usleep(motorSpeed);
     }
+    return SUCCESS;
 }
 
 uint32_t Motor::motorSetup()

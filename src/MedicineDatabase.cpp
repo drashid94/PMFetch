@@ -8,7 +8,7 @@ Could we feed it a JSON file so that it can load everything all at once?
  - getters
  - setters
 */
-#include "MedicineDatabase.h"
+#include "MedicineDatabase.hpp"
 
 MedicineDatabase::MedicineDatabase (const string& filename)
 {
