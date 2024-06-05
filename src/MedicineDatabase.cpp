@@ -15,4 +15,11 @@ MedicineDatabase::MedicineDatabase (const string& filename)
     //assuming database is in json file format as in software design spec
     // loadFromJSON(filename);
     //This call should populate allMedicines member variable
+    (void)filename; // compiler warning
 }
+
+const vector<Medicine>* MedicineDatabase::getAllMedicines() const
+{
+    return &allMedicines;
+}
+

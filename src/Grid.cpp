@@ -10,12 +10,20 @@
 
 #include "Grid.hpp"
 
+#define RIGHT 1
+#define UP 1
+#define LEFT 0
+#define DOWN 0
+
+Grid::Grid() 
+{ }
+
 Grid::Grid(Motor* motorUnitIn, MedicineDatabase* medicineDatabaseIn, int xdimensions, int ydimensions, int numUnitsX, int numUnitsY)
 {
     if (xdimensions <= 0 || ydimensions <= 0 || numUnitsX <= 0 || numUnitsY <= 0) {
 		//return out of bounds grid error
     }
-
+    currentCoord = {0, 0};
     // Calculate pulses per unit for each dimension
 	pulsesPerUnitX = X_PULSES_PER_CENTIMETER * xdimensions / numUnitsX;
 	pulsesPerUnitY = Y_PULSES_PER_CENTIMETER * ydimensions / numUnitsY;
@@ -33,20 +41,17 @@ uint32_t Grid::getPulsesPerUnitY() const {
 	return pulsesPerUnitY;
 }
 
-uint32_t Grid::getLocationX(const std::string& barcodeUPC) const {
+uint32_t Grid::getLocation(const Medicine& medication) const {
 	// search gridContainers for barcodeUPC. If found return x position
 	// or search MedicineDatabase and return x_coordinate from the medicine struct
+	(void) medication;
 	return SUCCESS;
 }
 
-uint32_t Grid::getLocationY(const std::string& barcodeUPC) const {
-	// search gridContainers for barcodeUPC. If found return x position
-	// or search MedicineDatabase and return x_coordinate from the medicine struct
-	return SUCCESS;
-}
-
-bool Grid::IsSlotEmpty(int x, int y) {
+bool Grid::IsSlotEmpty(shelfCoord c) {
 	// check if gridContainers[x][y] points to a medicine
+	(void)c;
+	return true;
 }
 
 uint32_t Grid::addToShelf(const Medicine& medication) {
@@ -54,14 +59,54 @@ uint32_t Grid::addToShelf(const Medicine& medication) {
 	// call move sequence for picking up drop off container and placing in new position
 	// update gridContainer
 	// update medicine database to include x and y coordinates for the medicine
+	
+	uint8_t direction = 0;
+	uint8_t numUnits;
+	uint32_t numPulses;
+	//check valid coord
+
+	//pickup from pickup location
+	//Move on X
+	int xMove = currentCoord.x - pickupLocation.x;
+	if(xMove > 0){ direction = LEFT; }
+	if(xMove < 0){ direction = RIGHT; }
+
+	numUnits = abs(xMove);
+	numPulses = pulsesPerUnitX * numUnits;
+	motorUnit->move(X_MOTOR_PIN, X_MOTOR_DIR_PIN, direction, numPulses, 2000);
+
+	//Move on Y
+	int yMove = currentCoord.y - pickupLocation.y;
+	if(yMove > 0){ direction = UP; }
+	if(yMove < 0){ direction = DOWN; }
+	
+	numUnits = abs(yMove);
+	numPulses = pulsesPerUnitY * numUnits;
+	motorUnit->move(Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, direction, numPulses, 500);
+
+	//Extend Z
+
+	//Lift slightly
+
+	//Retract Z
+
+	//Move to medicine location
+	xMove = currentCoord.x - medication.coord.x;
+	if(xMove > 0){ direction = LEFT; }
+	if(xMove < 0){ direction = RIGHT; }
+	//TODO
+
+
+
 	return SUCCESS;
 }
 
-uint32_t Grid::retrieveMedicine(const int barcodeUPC) {
+uint32_t Grid::fetchFromShelf(const Medicine& medication) {
 	// check if it exists in gridContainer
 	// calculate pulses and directions
 	// call move sequence for retrieving container and placing in pick up spot
 	// update gridcontainer? do we remove entirely from grid?
+	(void) medication;
 	return SUCCESS;
 }
 

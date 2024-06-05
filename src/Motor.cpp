@@ -73,6 +73,7 @@ uint32_t Motor::move(uint32_t motorPin, uint32_t motorDirPin, uint32_t direction
 uint32_t Motor::motorSetup()
 {
     uint32_t returnValue = SUCCESS;
+    uint32_t status;
     h = lgGpiochipOpen(4); // open /dev/gpiochip0
 
     if (h < 0) { EXIT_FUNCTION(returnValue, ERROR_MOTOR_GPIO_CHIP_OPEN); }

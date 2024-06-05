@@ -13,13 +13,12 @@ public:
 	Grid(Motor* motorUnitIn, MedicineDatabase* medicineDatabaseIn, int xdimensions, int ydimensions, int numUnitsX, int numUnitsY);
 	uint32_t getPulsesPerUnitX() const;
 	uint32_t getPulsesPerUnitY() const;
-	uint32_t getLocationX(const std::string& barcodeUPC) const;
-	uint32_t getLocationY(const std::string& barcodeUPC) const;
+	uint32_t getLocation(const Medicine& medication) const;
 
-	bool IsSlotEmpty(int x, int y); // include some error check to ensure x and y are within bounds
+	bool IsSlotEmpty(shelfCoord c); // include some error check to ensure x and y are within bounds
 
 	uint32_t addToShelf(const Medicine& medication); // calls move from motor unit
-	uint32_t retrieveMedicine(const int barcodeUPC); // calls move from motor unit
+	uint32_t fetchFromShelf(const Medicine& medication); // calls move from motor unit
 
 private:
 
@@ -28,9 +27,11 @@ public:
 	uint32_t pulsesPerUnitY;	
 
 private:
-	
+	shelfCoord currentCoord;
+	shelfCoord pickupLocation;
+
 	Motor* motorUnit;
-	std::vector<Medicine>* medicineDatabase; // populated by calling getAllMedicines() from medicine database?
+	const std::vector<Medicine>* medicineDatabase; // populated by calling getAllMedicines() from medicine database?
 	// Medicine gridContainers[gridMaxY][gridMaxX]; //TODO adjust size based on actual number of rows and columns in shelf
 	std::vector<std::vector<Medicine>> gridContainers;
 };
