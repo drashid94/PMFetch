@@ -9,14 +9,15 @@ using namespace std;
 
 struct Medicine {
   string medication_name;
-  int barcode;
-  shelfCoord coord;
-
+  string barcode;
+  ShelfCoord coord;
+  bool onShelf;
   // maybe weight, quantity, empty bool
 };
 
 class MedicineDatabase {
   public:
+    MedicineDatabase();
     MedicineDatabase (const string& filename); //assuming database is in json format as in software design spec
     const Medicine& searchMedicine(const string namePartial) const;
     const Medicine& searchMedicine(const int barcodeUPC) const;

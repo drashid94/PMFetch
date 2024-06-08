@@ -5,7 +5,7 @@
 #define GRID_MAX_X 5
 #define GRID_MAX_Y 5
 
-struct shelfCoord
+struct ShelfCoord
 {
     uint8_t x;
     uint8_t y;

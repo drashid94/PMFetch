@@ -9,6 +9,8 @@
 */
 
 #include "Grid.hpp"
+#include <string.h>
+#include <iostream>
 
 #define RIGHT 1
 #define UP 1
@@ -18,15 +20,15 @@
 Grid::Grid() 
 { }
 
-Grid::Grid(Motor* motorUnitIn, MedicineDatabase* medicineDatabaseIn, int xdimensions, int ydimensions, int numUnitsX, int numUnitsY)
+Grid::Grid(Motor* motorUnitIn, MedicineDatabase* medicineDatabaseIn, int xdimensionsCm, int ydimensionsCm, int numUnitsX, int numUnitsY)
 {
-    if (xdimensions <= 0 || ydimensions <= 0 || numUnitsX <= 0 || numUnitsY <= 0) {
+    if (xdimensionsCm <= 0 || ydimensionsCm <= 0 || numUnitsX <= 0 || numUnitsY <= 0) {
 		//return out of bounds grid error
     }
     currentCoord = {0, 0};
     // Calculate pulses per unit for each dimension
-	pulsesPerUnitX = X_PULSES_PER_CENTIMETER * xdimensions / numUnitsX;
-	pulsesPerUnitY = Y_PULSES_PER_CENTIMETER * ydimensions / numUnitsY;
+	pulsesPerUnitX = X_PULSES_PER_CENTIMETER * xdimensionsCm / numUnitsX;
+	pulsesPerUnitY = Y_PULSES_PER_CENTIMETER * ydimensionsCm / numUnitsY;
 
 	motorUnit = motorUnitIn;
 	medicineDatabase = medicineDatabaseIn->getAllMedicines();
@@ -48,13 +50,51 @@ uint32_t Grid::getLocation(const Medicine& medication) const {
 	return SUCCESS;
 }
 
-bool Grid::IsSlotEmpty(shelfCoord c) {
+bool Grid::IsSlotEmpty(ShelfCoord c) {
 	// check if gridContainers[x][y] points to a medicine
 	(void)c;
 	return true;
 }
 
-uint32_t Grid::addToShelf(const Medicine& medication) {
+uint32_t Grid::updateGrid(ShelfCoord shelfCoord, bool returning)
+{
+	//check coord params valid
+
+	gridContainers[shelfCoord.y][shelfCoord.x].onShelf = returning;
+	return SUCCESS;
+}
+
+uint32_t Grid::addNewItemToGrid(Medicine * med)
+{
+	uint32_t x = med->coord.x;
+	uint32_t y = med->coord.y;
+	memcpy((void*)&gridContainers[y][x], (void*)med, sizeof(Medicine));	
+	return SUCCESS;
+}
+
+//take in bunch of inputs to create a Medicine and set its location on shelf
+uint32_t Grid::shelfSetup() {
+
+	//What already exist on the shelf?
+	string name;
+	string bcode;
+	uint8_t x = 0;
+	uint8_t y = 0;
+	while(bcode != "100" && x != 100 && y != 100)
+	{
+		cin >> name;
+		cin >> bcode;
+		cin >> x;
+		cin >> y;
+		//TODO checks
+		//Check bcode doesnt already exist on shelf and validity of values
+		Medicine med{name, bcode, {x,y}, true /* onShelf */};
+		addNewItemToGrid(&med);	
+	}
+	return SUCCESS;
+}
+
+uint32_t Grid::returnToShelf(const Medicine& medication) {
 	// check if it exists in gridContainers
 	// call move sequence for picking up drop off container and placing in new position
 	// update gridContainer

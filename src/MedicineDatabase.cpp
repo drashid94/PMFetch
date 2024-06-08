@@ -10,6 +10,8 @@ Could we feed it a JSON file so that it can load everything all at once?
 */
 #include "MedicineDatabase.hpp"
 
+MedicineDatabase::MedicineDatabase() { }
+
 MedicineDatabase::MedicineDatabase (const string& filename)
 {
     //assuming database is in json file format as in software design spec

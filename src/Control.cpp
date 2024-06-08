@@ -19,8 +19,9 @@ public:
 int main()
 {
     uint32_t returnValue = SUCCESS;
-    Grid grid;
+    MedicineDatabase medData;
     Motor motorUnit;
+    Grid grid;
 
     if (motorUnit.motorSetup() != 0)
     {
@@ -33,6 +34,7 @@ int main()
 
     for(;;)
     {
+
         uint32_t next_x;
         uint32_t next_y;
         std::string moveOrExtend;
