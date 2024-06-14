@@ -21,13 +21,16 @@ int main()
     uint32_t returnValue = SUCCESS;
     MedicineDatabase medData;
     Motor motorUnit;
-    Grid grid;
+    Grid grid{&motorUnit, &medData, GRID_DIM_X, GRID_DIM_Y, 5, 4};
 
     if (motorUnit.motorSetup() != 0)
     {
         printf("Error: motor setup returned non-zero\n");
         return returnValue;
     }
+
+    //Test grid functions
+    
     
     // get function selection from ui
     // call appropriate grid function 

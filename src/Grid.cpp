@@ -26,9 +26,17 @@ Grid::Grid(Motor* motorUnitIn, MedicineDatabase* medicineDatabaseIn, int xdimens
 		//return out of bounds grid error
     }
     currentCoord = {0, 0};
+    pickupLocation = {1, 1};
     // Calculate pulses per unit for each dimension
 	pulsesPerUnitX = X_PULSES_PER_CENTIMETER * xdimensionsCm / numUnitsX;
 	pulsesPerUnitY = Y_PULSES_PER_CENTIMETER * ydimensionsCm / numUnitsY;
+	pulsesPerLiftY = Y_PULSES_PER_CENTIMETER * LIFT_AMOUNT_CM;
+
+	gridContainers.resize(numUnitsY);
+	for(vector<GridUnit> v : gridContainers)
+	{
+		v.resize(numUnitsX);
+	}
 
 	motorUnit = motorUnitIn;
 	medicineDatabase = medicineDatabaseIn->getAllMedicines();
@@ -56,25 +64,61 @@ bool Grid::IsSlotEmpty(ShelfCoord c) {
 	return true;
 }
 
+/*
+ * Function:  updateGrid 
+ * --------------------
+ * update grid data structure after fetching or retrieving a med
+ *
+ * Description:
+ * 	call this when a med is retrieved or being returned. 
+ * Parameters:
+ *   returning - true if item is being returned
+ * Returns:
+ *   Status
+ */
 uint32_t Grid::updateGrid(ShelfCoord shelfCoord, bool returning)
 {
 	//check coord params valid
 
-	gridContainers[shelfCoord.y][shelfCoord.x].onShelf = returning;
+	gridContainers[shelfCoord.y][shelfCoord.x].med->onShelf = returning;
 	return SUCCESS;
 }
 
-uint32_t Grid::addNewItemToGrid(Medicine * med)
+/*
+ * Function:  addNewItemToGrid 
+ * --------------------
+ * Add new item to a shelf/grid unit
+ *
+ * Description:
+ * 	Only call this when a new item is being added to an empty spot in the grid
+ * 	If medicine exists on shelf delete first before adding a new med there.
+ * Parameters:
+ *   med - the medication to be added to the grid.
+ * Returns:
+ *   Status
+ */
+uint32_t Grid::addNewItemToGrid(GridUnit * gridUnit)
 {
-	uint32_t x = med->coord.x;
-	uint32_t y = med->coord.y;
-	memcpy((void*)&gridContainers[y][x], (void*)med, sizeof(Medicine));	
+	//TODO Ensure no med is at these coords already
+	uint32_t x = gridUnit->med->coord.x;
+	uint32_t y = gridUnit->med->coord.y;
+	printf("Performing memcpy\n");
+	memcpy((void*)&gridContainers[y][x], (void*)gridUnit, sizeof(GridUnit));	
 	return SUCCESS;
 }
 
-//take in bunch of inputs to create a Medicine and set its location on shelf
-uint32_t Grid::shelfSetup() {
+void Grid::isMedValid(Medicine * med, bool &valid)
+{
+	//TODO checks
+	//Check bcode doesnt already exist on shelf and validity of values	
+	(void)med;
+	valid = true;
+}
 
+//take in bunch of inputs to create Medicine objects and set their location on shelf
+//Do this during setup when things are already on shelf
+uint32_t Grid::shelfSetup() {
+	bool valid = false;
 	//What already exist on the shelf?
 	string name;
 	string bcode;
@@ -86,12 +130,77 @@ uint32_t Grid::shelfSetup() {
 		cin >> bcode;
 		cin >> x;
 		cin >> y;
-		//TODO checks
-		//Check bcode doesnt already exist on shelf and validity of values
+			
 		Medicine med{name, bcode, {x,y}, true /* onShelf */};
-		addNewItemToGrid(&med);	
+		isMedValid(&med, valid);
+		GridUnit gridUnit{&med, true};
+
+		if(valid) addNewItemToGrid(&gridUnit);
+		else
+		{
+			printf("Medicine is invalid\n");
+		}
+
 	}
 	return SUCCESS;
+}
+
+uint32_t Grid::extendZ()
+{
+	//Will implement once Z axis design finalized
+	printf("Extending Z\n");
+	return SUCCESS;
+}
+
+uint32_t Grid::retractZ()
+{
+	//Will implement once Z axis design finalized
+	printf("Retracting Z\n");
+	return SUCCESS;
+}
+
+uint32_t Grid::containerLiftOrPlace(bool lift)
+{
+	uint8_t direction = 0;
+	uint32_t numPulses = 0;
+
+	printf("Lifting on Y\n");
+	numPulses = pulsesPerLiftY;
+	direction = DOWN;
+	if(lift) direction = UP;
+	motorUnit->move(Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, direction, numPulses, yMotorSpeed);
+	return SUCCESS;
+
+}
+
+//Takes current location and destination and moves there
+uint32_t Grid::moveXY(ShelfCoord coordCurr, ShelfCoord coordDest)
+{
+	uint8_t direction = 0;
+	uint8_t numUnits = 0;
+	uint32_t numPulses = 0;
+
+	//Move to destination X COORD
+	int xMove = coordCurr.x - coordDest.x;
+	if(xMove > 0){ direction = LEFT; }
+	if(xMove < 0){ direction = RIGHT; }
+
+	numUnits = abs(xMove);
+	numPulses = pulsesPerUnitX * numUnits;
+	motorUnit->move(X_MOTOR_PIN, X_MOTOR_DIR_PIN, direction, numPulses, xMotorSpeed);
+
+	//Move to destination Y COORD
+	int yMove = coordCurr.y - coordDest.y;
+	if(yMove > 0){ direction = UP; }
+	if(yMove < 0){ direction = DOWN; }
+	
+	numUnits = abs(yMove);
+	numPulses = pulsesPerUnitY * numUnits;
+	motorUnit->move(Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, direction, numPulses, yMotorSpeed);
+	
+	currentCoord = coordDest;
+	return SUCCESS;
+
 }
 
 uint32_t Grid::returnToShelf(const Medicine& medication) {
@@ -100,54 +209,77 @@ uint32_t Grid::returnToShelf(const Medicine& medication) {
 	// update gridContainer
 	// update medicine database to include x and y coordinates for the medicine
 	
-	uint8_t direction = 0;
-	uint8_t numUnits;
-	uint32_t numPulses;
+	uint32_t returnValue = SUCCESS;
+
 	//check valid coord
 
-	//pickup from pickup location
-	//Move on X
-	int xMove = currentCoord.x - pickupLocation.x;
-	if(xMove > 0){ direction = LEFT; }
-	if(xMove < 0){ direction = RIGHT; }
-
-	numUnits = abs(xMove);
-	numPulses = pulsesPerUnitX * numUnits;
-	motorUnit->move(X_MOTOR_PIN, X_MOTOR_DIR_PIN, direction, numPulses, 2000);
-
-	//Move on Y
-	int yMove = currentCoord.y - pickupLocation.y;
-	if(yMove > 0){ direction = UP; }
-	if(yMove < 0){ direction = DOWN; }
-	
-	numUnits = abs(yMove);
-	numPulses = pulsesPerUnitY * numUnits;
-	motorUnit->move(Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, direction, numPulses, 500);
+	/* --------------------- pickup from pickup location ------------------- */
+	//Move to pickup location
+	returnValue = moveXY(currentCoord, pickupLocation);
 
 	//Extend Z
+	returnValue = extendZ();
 
 	//Lift slightly
+	returnValue = containerLiftOrPlace(true);
 
 	//Retract Z
+	returnValue = retractZ();
 
-	//Move to medicine location
-	xMove = currentCoord.x - medication.coord.x;
-	if(xMove > 0){ direction = LEFT; }
-	if(xMove < 0){ direction = RIGHT; }
-	//TODO
+	/* --------------------- move to medicine's location ------------------- */
+	returnValue = moveXY(currentCoord, medication.coord);
 
+	//Extend Z
+	returnValue = extendZ();
 
+	// Lower container
+	returnValue = containerLiftOrPlace(false);
 
-	return SUCCESS;
+	// retract Z
+	returnValue = retractZ();
+
+	//Inform gridContainers that this medicine has been returned
+	updateGrid(medication.coord, true);
+
+	return returnValue;
 }
 
 uint32_t Grid::fetchFromShelf(const Medicine& medication) {
 	// check if it exists in gridContainer
 	// calculate pulses and directions
-	// call move sequence for retrieving container and placing in pick up spot
-	// update gridcontainer? do we remove entirely from grid?
-	(void) medication;
-	return SUCCESS;
+
+	/* --------------------- pickup at medicine's location ------------------- */
+	uint32_t returnValue = SUCCESS;
+
+	returnValue = moveXY(currentCoord, medication.coord);
+
+	//Extend Z
+	returnValue = extendZ();
+
+	// Lower container
+	returnValue = containerLiftOrPlace(true);
+
+	// retract Z
+	returnValue = retractZ();
+
+	/* --------------------- dropoff at pickup location ------------------- */
+
+	//Move to pickup location
+	returnValue = moveXY(currentCoord, pickupLocation);
+
+	//Extend Z
+	returnValue = extendZ();
+
+	//Lift slightly
+	returnValue = containerLiftOrPlace(false);
+
+	//Retract Z
+	returnValue = retractZ();
+
+	//Inform gridContainers that this medicine has been taken
+	updateGrid(medication.coord, false);
+
+	return returnValue;
 }
 
 /*//         if(sel == 'x')
