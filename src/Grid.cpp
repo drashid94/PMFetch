@@ -64,6 +64,29 @@ bool Grid::IsSlotEmpty(ShelfCoord c) {
 	return true;
 }
 
+
+
+uint32_t Grid::printGrid()
+{
+	for(vector<GridUnit> gv : gridContainers)
+	{
+		for(GridUnit gu : gv)
+		{
+			printf("|\t");			
+			if(!gu.occupied)
+			{
+				printf("Space not occupied\t");
+				continue;		
+			}
+			printf("Occupied\t");
+			MedicineDatabase::medPrint(gu.med);
+
+			printf("|\t");
+		}
+	}
+	MedicineDatabase::medPrint();
+}
+
 /*
  * Function:  updateGrid 
  * --------------------
@@ -135,7 +158,11 @@ uint32_t Grid::shelfSetup() {
 		isMedValid(&med, valid);
 		GridUnit gridUnit{&med, true};
 
-		if(valid) addNewItemToGrid(&gridUnit);
+		if(valid) 
+		{
+			addNewItemToGrid(&gridUnit);
+			printf("Item Added to Grid\n");
+		}
 		else
 		{
 			printf("Medicine is invalid\n");

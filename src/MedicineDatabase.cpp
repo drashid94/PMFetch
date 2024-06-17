@@ -20,6 +20,17 @@ MedicineDatabase::MedicineDatabase (const string& filename)
     (void)filename; // compiler warning
 }
 
+const void MedicineDatabase::medPrint(Medicine * med)
+{
+    printf("Printing Medicine:\n");
+    printf("Med Name: %s\n", med->medication_name);
+    printf("Med barcode: %s\n", med->barcode);
+    printf("X Coord: %d", med->coord.x);
+    printf("Y Coord: %d", med->coord.y);
+    printf("On Shelf?: %d", med->onShelf);
+    printf("Done Printing Medicine\n");
+}
+
 const vector<Medicine>* MedicineDatabase::getAllMedicines() const
 {
     return &allMedicines;

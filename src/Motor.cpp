@@ -55,11 +55,14 @@ Motor::Motor() { }
 uint32_t Motor::move(uint32_t motorPin, uint32_t motorDirPin, uint32_t direction, uint32_t pulses, uint32_t motorSpeed)
 {
     //Dont do if Z motor
+    printf("Movement function called\n");
     if(motorPin != Z_MOTOR_PIN)
     {
+        printf("Motor: Direction: %d\n", direction);
         lgGpioWrite(h, motorDirPin, direction);
         usleep(10);
     }
+    print("Motor: Pulses: %d\n", pulses);
     for(uint32_t i = 0; i < pulses; i++)
     {
         lgGpioWrite(h, motorPin, 1);

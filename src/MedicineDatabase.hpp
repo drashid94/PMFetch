@@ -19,6 +19,7 @@ class MedicineDatabase {
   public:
     MedicineDatabase();
     MedicineDatabase (const string& filename); //assuming database is in json format as in software design spec
+    static const void medPrint(Medicine * med);
     const Medicine& searchMedicine(const string namePartial) const;
     const Medicine& searchMedicine(const int barcodeUPC) const;
     const vector<Medicine>* getAllMedicines() const; // returns allMedicines, likely to the grid

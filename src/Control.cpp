@@ -23,11 +23,12 @@ int main()
     Motor motorUnit;
     Grid grid{&motorUnit, &medData, GRID_DIM_X, GRID_DIM_Y, 5, 4};
 
-    if (motorUnit.motorSetup() != 0)
-    {
-        printf("Error: motor setup returned non-zero\n");
-        return returnValue;
-    }
+    //UNCOMMENT
+    // if (motorUnit.motorSetup() != 0)
+    // {
+    //     printf("Error: motor setup returned non-zero\n");
+    //     return returnValue;
+    // }
 
     //Test grid functions
     
