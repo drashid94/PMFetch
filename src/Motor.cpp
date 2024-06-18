@@ -62,7 +62,7 @@ uint32_t Motor::move(uint32_t motorPin, uint32_t motorDirPin, uint32_t direction
         lgGpioWrite(h, motorDirPin, direction);
         usleep(10);
     }
-    print("Motor: Pulses: %d\n", pulses);
+    printf("Motor: Pulses: %d\n", pulses);
     for(uint32_t i = 0; i < pulses; i++)
     {
         lgGpioWrite(h, motorPin, 1);

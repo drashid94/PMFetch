@@ -33,9 +33,9 @@ Grid::Grid(Motor* motorUnitIn, MedicineDatabase* medicineDatabaseIn, int xdimens
 	pulsesPerLiftY = Y_PULSES_PER_CENTIMETER * LIFT_AMOUNT_CM;
 
 	gridContainers.resize(numUnitsY);
-	for(vector<GridUnit> v : gridContainers)
+	for(uint32_t i = 0; i < gridContainers.size(); i++)
 	{
-		v.resize(numUnitsX);
+		gridContainers[i].resize(numUnitsX);
 	}
 
 	motorUnit = motorUnitIn;
@@ -66,25 +66,32 @@ bool Grid::IsSlotEmpty(ShelfCoord c) {
 
 
 
-uint32_t Grid::printGrid()
+void Grid::printGrid()
 {
+	int row = 0;
 	for(vector<GridUnit> gv : gridContainers)
 	{
+
+		cout << "-------------------- ";
+		cout << "Row " << row;
+		cout << " --------------------\n";
+		int col = 0;
 		for(GridUnit gu : gv)
 		{
-			printf("|\t");			
+			cout << "Column: " << col << "\n";
 			if(!gu.occupied)
 			{
-				printf("Space not occupied\t");
+				printf("Space not occupied\n");
+				col++;
 				continue;		
 			}
-			printf("Occupied\t");
-			MedicineDatabase::medPrint(gu.med);
-
-			printf("|\t");
+			printf("Occupied\n");
+			MedicineDatabase::medPrint(&gu.med);
+			col++;
+			cout << "\n";
 		}
+		row++;
 	}
-	MedicineDatabase::medPrint();
 }
 
 /*
@@ -103,7 +110,7 @@ uint32_t Grid::updateGrid(ShelfCoord shelfCoord, bool returning)
 {
 	//check coord params valid
 
-	gridContainers[shelfCoord.y][shelfCoord.x].med->onShelf = returning;
+	gridContainers[shelfCoord.y][shelfCoord.x].med.onShelf = returning;
 	return SUCCESS;
 }
 
@@ -123,10 +130,10 @@ uint32_t Grid::updateGrid(ShelfCoord shelfCoord, bool returning)
 uint32_t Grid::addNewItemToGrid(GridUnit * gridUnit)
 {
 	//TODO Ensure no med is at these coords already
-	uint32_t x = gridUnit->med->coord.x;
-	uint32_t y = gridUnit->med->coord.y;
-	printf("Performing memcpy\n");
-	memcpy((void*)&gridContainers[y][x], (void*)gridUnit, sizeof(GridUnit));	
+	uint32_t x = gridUnit->med.coord.x;
+	uint32_t y = gridUnit->med.coord.y;
+	// memcpy((void*)&gridContainers[y][x], (void*)gridUnit, sizeof(GridUnit));
+	gridContainers[y][x] = *gridUnit;
 	return SUCCESS;
 }
 
@@ -145,18 +152,22 @@ uint32_t Grid::shelfSetup() {
 	//What already exist on the shelf?
 	string name;
 	string bcode;
-	uint8_t x = 0;
-	uint8_t y = 0;
-	while(bcode != "100" && x != 100 && y != 100)
+	int x = 0;
+	int y = 0;
+	while(true)
 	{
+		cout << "Enter Name of Med:\n";
 		cin >> name;
+		cout << "Scan Barcode of medication\n";
 		cin >> bcode;
+		cout << "Enter Column Number: \n";
 		cin >> x;
+		cout << "Enter Row Number: \n";
 		cin >> y;
-			
-		Medicine med{name, bcode, {x,y}, true /* onShelf */};
+
+		Medicine med{name, bcode, {uint8_t(x & 0x7f),uint8_t(y & 0x7f)}, true /* onShelf */};
 		isMedValid(&med, valid);
-		GridUnit gridUnit{&med, true};
+		GridUnit gridUnit{med, true};
 
 		if(valid) 
 		{
@@ -166,6 +177,14 @@ uint32_t Grid::shelfSetup() {
 		else
 		{
 			printf("Medicine is invalid\n");
+		}
+
+		int exit = 0;
+		cout << "0 to EXIT 1 to CONTINUE\n";
+		cin >> exit;
+		if(exit == 0)
+		{
+			break;
 		}
 
 	}

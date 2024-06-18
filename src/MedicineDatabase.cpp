@@ -9,6 +9,7 @@ Could we feed it a JSON file so that it can load everything all at once?
  - setters
 */
 #include "MedicineDatabase.hpp"
+#include <iostream>
 
 MedicineDatabase::MedicineDatabase() { }
 
@@ -20,15 +21,16 @@ MedicineDatabase::MedicineDatabase (const string& filename)
     (void)filename; // compiler warning
 }
 
-const void MedicineDatabase::medPrint(Medicine * med)
+void MedicineDatabase::medPrint(Medicine * med)
 {
-    printf("Printing Medicine:\n");
-    printf("Med Name: %s\n", med->medication_name);
-    printf("Med barcode: %s\n", med->barcode);
-    printf("X Coord: %d", med->coord.x);
-    printf("Y Coord: %d", med->coord.y);
-    printf("On Shelf?: %d", med->onShelf);
-    printf("Done Printing Medicine\n");
+    string medName = med->medication_name;
+    cout << "Printing Medicine:\n";
+    cout << "Med Name: " << medName << "\n";
+    cout << "Med barcode: "<< med->barcode << "\n";
+    cout << "X Coord: " << med->coord.x << "\n";
+    cout << "Y Coord: " << med->coord.y << "\n";
+    cout << "On Shelf?: " << med->onShelf << "\n";
+    cout << "Done Printing Medicine\n";
 }
 
 const vector<Medicine>* MedicineDatabase::getAllMedicines() const

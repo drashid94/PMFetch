@@ -11,8 +11,8 @@
 
 struct ShelfCoord
 {
-    uint8_t x;
-    uint8_t y;
+    int x;
+    int y;
 };
 
 #define SUCCESS 0

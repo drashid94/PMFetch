@@ -8,7 +8,7 @@
 
 struct GridUnit
 {
-	Medicine * med;
+	Medicine med;
 	bool occupied;
 };
 
@@ -21,6 +21,7 @@ public:
 	uint32_t getPulsesPerUnitY() const;
 	uint32_t getLocation(const Medicine& medication) const;
 	uint32_t shelfSetup();
+	void printGrid();
 
 	bool IsSlotEmpty(ShelfCoord c); // include some error check to ensure x and y are within bounds
 	void isMedValid(Medicine * medication, bool &valid);

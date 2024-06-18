@@ -21,7 +21,7 @@ int main()
     uint32_t returnValue = SUCCESS;
     MedicineDatabase medData;
     Motor motorUnit;
-    Grid grid{&motorUnit, &medData, GRID_DIM_X, GRID_DIM_Y, 5, 4};
+    Grid grid{&motorUnit, &medData, GRID_DIM_X, GRID_DIM_Y, 5 /* X units */, 4 /* Y units */};
 
     //UNCOMMENT
     // if (motorUnit.motorSetup() != 0)
@@ -31,10 +31,13 @@ int main()
     // }
 
     //Test grid functions
-    
+    grid.printGrid();
+    grid.shelfSetup();
+    grid.printGrid();
     
     // get function selection from ui
     // call appropriate grid function 
+    return returnValue;
 
     for(;;)
     {
