@@ -4,6 +4,7 @@
 #include "Motor.hpp"
 #include "errors.hpp"
 #include "defines.hpp"
+#include <iostream>
 
 // void move(uint32_t h, uint32_t motorPin, uint32_t motorDirPin, uint32_t direction, uint32_t lift)
 // {
@@ -58,7 +59,7 @@ uint32_t Motor::move(uint32_t motorPin, uint32_t motorDirPin, uint32_t direction
     printf("Movement function called\n");
     if(motorPin != Z_MOTOR_PIN)
     {
-        printf("Motor: Direction: %d\n", direction);
+        printf("Motor: MotorPin: %d Direction: %d\n", motorPin, direction);
         lgGpioWrite(h, motorDirPin, direction);
         usleep(10);
     }
@@ -77,6 +78,7 @@ uint32_t Motor::motorSetup()
 {
     uint32_t returnValue = SUCCESS;
     uint32_t status;
+    std::cout << "Running Motor Setup Routine\n";
     h = lgGpiochipOpen(4); // open /dev/gpiochip0
 
     if (h < 0) { EXIT_FUNCTION(returnValue, ERROR_MOTOR_GPIO_CHIP_OPEN); }

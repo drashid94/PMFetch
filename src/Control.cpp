@@ -23,17 +23,26 @@ int main()
     Motor motorUnit;
     Grid grid{&motorUnit, &medData, GRID_DIM_X, GRID_DIM_Y, 5 /* X units */, 4 /* Y units */};
 
-    //UNCOMMENT
-    // if (motorUnit.motorSetup() != 0)
-    // {
-    //     printf("Error: motor setup returned non-zero\n");
-    //     return returnValue;
-    // }
+    if (motorUnit.motorSetup() != 0)
+    {
+        printf("Error: motor setup returned non-zero\n");
+        return returnValue;
+    }
 
     //Test grid functions
     grid.printGrid();
     grid.shelfSetup();
     grid.printGrid();
+
+    //Test movement
+    ShelfCoord curr {0,0};
+    ShelfCoord dest {1,2};
+    cout << "Moving to dest\n";
+    grid.moveXY(curr, dest);
+    cout << "Current Coord: (" << grid.currentCoord.x << "," << grid.currentCoord.y << ")\n";
+    cout << "Moving back\n";
+    grid.moveXY(dest, curr);
+    cout << "Current Coord: (" << grid.currentCoord.x << "," << grid.currentCoord.y << ")\n";
     
     // get function selection from ui
     // call appropriate grid function 

@@ -46,8 +46,6 @@ public:
 	uint32_t yMotorSpeed = 500;
 	uint32_t xMotorSpeed = 2000;
 	uint32_t zMotorSpeed = 2000;	
-
-private:
 	ShelfCoord currentCoord;
 	ShelfCoord pickupLocation;
 
