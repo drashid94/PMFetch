@@ -23,14 +23,12 @@ int main()
     Motor motorUnit;
     Grid grid{&motorUnit, &medData, GRID_DIM_X, GRID_DIM_Y, 5 /* X units */, 4 /* Y units */};
 
-    if (motorUnit.motorSetup() != 0)
-    {
-        printf("Error: motor setup returned non-zero\n");
-        return returnValue;
-    }
+    // if (motorUnit.motorSetup() != 0)
+    // {
+    //     printf("Error: motor setup returned non-zero\n");
+    //     return returnValue;
+    // }
 
-    grid.moveXY({0,0}, {3,3});
-    grid.moveXY({3,3}, {0,0});
     //Test grid functions
     grid.printGrid();
     grid.shelfSetup();
@@ -63,7 +61,7 @@ int main()
             printf("Enter medicine name to fetch - ");
             cin>> medicationName;
             
-            if (fetchFromShelfByName(medicationName) == 1)
+            if (grid.fetchFromShelfByName(medicationName) == 1)
             {
                 printf("Error");
             }
@@ -72,12 +70,13 @@ int main()
                 continue;
             }
         }
+
         else //return
         {
             printf("Scan barcode - ");
             cin >> medicationBarcode;
 
-            if (returnToShelfByBarcode(medicationBarcode) == 1)
+            if (grid.returnToShelfByBarcode(medicationBarcode) == 1)
             {
                 printf("Error");
             }

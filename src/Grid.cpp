@@ -155,7 +155,9 @@ uint32_t Grid::returnToShelfByBarcode (string barcode) // search grid by name an
 			{
 				if(gridContainers[x][y].med.barcode == barcode)
 				{
-					returnToShelf(grid.gridContainers[x][y].med);
+					printf("PLace item in drop off, then click enter -");
+					cin.ignore();
+					returnToShelf(gridContainers[x][y].med);
 					return SUCCESS;
 				}
 			}
@@ -174,7 +176,7 @@ uint32_t Grid::fetchFromShelfByName (string medicationName) // search grid by na
 			{
 				if(gridContainers[x][y].med.medication_name == medicationName)
 				{
-					fetchFromShelf(grid.gridContainers[x][y].med);
+					fetchFromShelf(gridContainers[x][y].med);
 					return SUCCESS;
 				}
 			}
