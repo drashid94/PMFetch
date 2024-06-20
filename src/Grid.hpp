@@ -26,11 +26,14 @@ public:
 	bool IsSlotEmpty(ShelfCoord c); // include some error check to ensure x and y are within bounds
 	void isMedValid(Medicine * medication, bool &valid);
 
+
 	//Movement
 	uint32_t extendZ();
 	uint32_t retractZ();
 	uint32_t containerLiftOrPlace(bool lift);
 	uint32_t moveXY(ShelfCoord coordCurr, ShelfCoord coordDest);
+	uint32_t returnToShelfByBarcode (string barcode); // search grid by name and call returntoshelf
+	uint32_t fetchFromShelfByName (string medicationName); // search grid by name and call fetchfromshelf
 	uint32_t returnToShelf(const Medicine& medication); // calls move from motor unit
 	uint32_t fetchFromShelf(const Medicine& medication); // calls move from motor unit
 

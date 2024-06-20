@@ -145,6 +145,44 @@ void Grid::isMedValid(Medicine * med, bool &valid)
 	valid = true;
 }
 
+uint32_t Grid::returnToShelfByBarcode (string barcode) // search grid by name and call returntoshelf
+{
+	for(uint32_t x = 0; x < gridContainers.size(); x++)
+	{
+		for (uint32_t y = 0; y < gridContainers[x].size(); y++)
+		{
+			if (gridContainers[x][y].occupied == true)
+			{
+				if(gridContainers[x][y].med.barcode == barcode)
+				{
+					returnToShelf(grid.gridContainers[x][y].med);
+					return SUCCESS;
+				}
+			}
+		}
+	}
+	return 1;
+}
+
+uint32_t Grid::fetchFromShelfByName (string medicationName) // search grid by name and call fetchfromshelf
+{
+	for(uint32_t x = 0; x < gridContainers.size(); x++)
+	{
+		for (uint32_t y = 0; y < gridContainers[x].size(); y++)
+		{
+			if (gridContainers[x][y].occupied == true)
+			{
+				if(gridContainers[x][y].med.medication_name == medicationName)
+				{
+					fetchFromShelf(grid.gridContainers[x][y].med);
+					return SUCCESS;
+				}
+			}
+		}
+	}
+	return 1;
+}
+
 //take in bunch of inputs to create Medicine objects and set their location on shelf
 //Do this during setup when things are already on shelf
 uint32_t Grid::shelfSetup() {

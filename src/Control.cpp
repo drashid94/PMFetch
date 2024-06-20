@@ -46,81 +46,45 @@ int main()
     // // grid.moveXY(curr, dest);
     // cout << "Current Coord: (" << grid.currentCoord.x << "," << grid.currentCoord.y << ")\n";
     
-    if(grid.gridContainers[1][1].occupied)
-    {
-        // Medicine med = grid.gridContainers[1][1].med;
-        grid.fetchFromShelf(grid.gridContainers[1][1].med);
-    }
-    else
-    {
-        cout << "Not occ\n";
-    }
-
-    grid.returnToShelf(grid.gridContainers[1][1].med);
-
-    grid.moveXY(grid.currentCoord, {0,0});
-
-    // get function selection from ui
-    // call appropriate grid function 
-    return returnValue;
+   
 
     for(;;)
     {
 
-        uint32_t next_x;
-        uint32_t next_y;
-        std::string moveOrExtend;
+        string medicationBarcode;
+        string medicationName;
+        std::string fetchOrReturn;
 
-        printf("\"move\" or \"extend\"? (lowercase, no whitespace) ");
-        std::cin >> moveOrExtend;
+        printf("\"fetch\" or \"return\"? (lowercase, no whitespace) ");
+        std::cin >> fetchOrReturn;
 
-        if (moveOrExtend == "move")
+        if (fetchOrReturn == "fetch")
         {
-            printf("Enter x coordinate: ");
-            std::cin >> next_x;
-            printf("Enter y coordinate: ");
-            std::cin >> next_y;
-
-            if (next_x > GRID_MAX_X || next_y > GRID_MAX_Y)
+            printf("Enter medicine name to fetch - ");
+            cin>> medicationName;
+            
+            if (fetchFromShelfByName(medicationName) == 1)
             {
-                printf("Out of bounds");
-                //error message
+                printf("Error");
+            }
+            else
+            {
                 continue;
             }
-
-            // TO DO Complete the following -
-            //Move in x direction
-            // TO DO calculate pulses and speed, then move
-            // motorUnit.move(X_MOTOR_PIN, Y_MOTOR_DIR_PIN, uint32_t direction, uint32_t pulses, uint32_t motorSpeed)
-
-            //Move in y direction
-            // TO DO calculate pulses and speed
-            //motorUnit.move(Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, uint32_t direction, uint32_t pulses, uint32_t motorSpeed)
-
-            // Update current x and y coordinates
-            // x_location = next_x;
-            // y_location = next_y;
-
         }
-        else // extend Z
+        else //return
         {
-        //     //Extend Z
-        //     motorUnit.move(h, Z_MOTOR_PIN, Y_MOTOR_DIR_PIN, 0, 0);
-        //     // Lift on Y
-        //     motorUnit.move(h, Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, 1, 1);
-        //     // Retract Z
-        //     motorUnit.move(h, Z_MOTOR_PIN, Y_MOTOR_DIR_PIN, 0, 0);
-        //     // Move Y Full Step
-        //     motorUnit.move(h, Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, dir, 0);
-        //     // Move along X 
-        //     motorUnit.move(h, X_MOTOR_PIN, X_MOTOR_DIR_PIN, !dir, 0);
-        //     motorUnit.move(h, X_MOTOR_PIN, X_MOTOR_DIR_PIN, !dir, 0);
-        //     // Extend Z
-        //     motorUnit.move(h, Z_MOTOR_PIN, Y_MOTOR_DIR_PIN, 0, 0);
-        //     // Put down box
-        //     motorUnit.move(h, Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, 0, 1);
-        //     // Retract Z
-        //     motorUnit.move(h, Z_MOTOR_PIN, Y_MOTOR_DIR_PIN, 0, 0);
+            printf("Scan barcode - ");
+            cin >> medicationBarcode;
+
+            if (returnToShelfByBarcode(medicationBarcode) == 1)
+            {
+                printf("Error");
+            }
+            else
+            {
+                continue;
+            }
         }
 
     }
