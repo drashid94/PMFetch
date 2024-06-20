@@ -12,10 +12,10 @@
 #include <string.h>
 #include <iostream>
 
-#define RIGHT 1
-#define UP 1
-#define LEFT 0
-#define DOWN 0
+#define RIGHT 0
+#define UP 0
+#define LEFT 1
+#define DOWN 1
 
 Grid::Grid() 
 { }
@@ -26,11 +26,11 @@ Grid::Grid(Motor* motorUnitIn, MedicineDatabase* medicineDatabaseIn, int xdimens
 		//return out of bounds grid error
     }
     currentCoord = {0, 0};
-    pickupLocation = {1, 1};
+    pickupLocation = {3, 3};
     // Calculate pulses per unit for each dimension
-	pulsesPerUnitX = X_PULSES_PER_CENTIMETER * xdimensionsCm / numUnitsX;
-	pulsesPerUnitY = Y_PULSES_PER_CENTIMETER * ydimensionsCm / numUnitsY;
-	pulsesPerLiftY = Y_PULSES_PER_CENTIMETER * LIFT_AMOUNT_CM;
+	pulsesPerUnitX = 1200;
+	pulsesPerUnitY = 16000;
+	pulsesPerLiftY = 3000;
 
 	gridContainers.resize(numUnitsY);
 	for(uint32_t i = 0; i < gridContainers.size(); i++)

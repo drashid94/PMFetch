@@ -29,21 +29,37 @@ int main()
         return returnValue;
     }
 
+    grid.moveXY({0,0}, {3,3});
+    grid.moveXY({3,3}, {0,0});
     //Test grid functions
     grid.printGrid();
     grid.shelfSetup();
     grid.printGrid();
 
     //Test movement
-    ShelfCoord curr {0,0};
-    ShelfCoord dest {1,2};
-    cout << "Moving to dest\n";
-    grid.moveXY(curr, dest);
-    cout << "Current Coord: (" << grid.currentCoord.x << "," << grid.currentCoord.y << ")\n";
-    cout << "Moving back\n";
-    grid.moveXY(dest, curr);
-    cout << "Current Coord: (" << grid.currentCoord.x << "," << grid.currentCoord.y << ")\n";
+    // ShelfCoord curr {1,0};
+    // ShelfCoord dest {0,0};
+    // cout << "Moving to dest\n";
+    // grid.moveXY(curr, dest);
+    // cout << "Current Coord: (" << grid.currentCoord.x << "," << grid.currentCoord.y << ")\n";
+    // cout << "Moving back\n";
+    // // grid.moveXY(curr, dest);
+    // cout << "Current Coord: (" << grid.currentCoord.x << "," << grid.currentCoord.y << ")\n";
     
+    if(grid.gridContainers[1][1].occupied)
+    {
+        // Medicine med = grid.gridContainers[1][1].med;
+        grid.fetchFromShelf(grid.gridContainers[1][1].med);
+    }
+    else
+    {
+        cout << "Not occ\n";
+    }
+
+    grid.returnToShelf(grid.gridContainers[1][1].med);
+
+    grid.moveXY(grid.currentCoord, {0,0});
+
     // get function selection from ui
     // call appropriate grid function 
     return returnValue;

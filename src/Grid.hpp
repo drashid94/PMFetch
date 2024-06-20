@@ -34,6 +34,7 @@ public:
 	uint32_t returnToShelf(const Medicine& medication); // calls move from motor unit
 	uint32_t fetchFromShelf(const Medicine& medication); // calls move from motor unit
 
+
 private:
 
 	uint32_t addNewItemToGrid(GridUnit * gridUnit);
@@ -43,8 +44,8 @@ public:
 	uint32_t pulsesPerUnitX;
 	uint32_t pulsesPerUnitY;
 	uint32_t pulsesPerLiftY;
-	uint32_t yMotorSpeed = 500;
-	uint32_t xMotorSpeed = 2000;
+	uint32_t yMotorSpeed = 200;
+	uint32_t xMotorSpeed = 750;
 	uint32_t zMotorSpeed = 2000;	
 	ShelfCoord currentCoord;
 	ShelfCoord pickupLocation;
