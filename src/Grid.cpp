@@ -157,6 +157,7 @@ uint32_t Grid::returnToShelfByBarcode (string barcode) // search grid by name an
 				{
 					printf("PLace item in drop off, then click enter -");
 					cin.ignore();
+					cin.ignore();
 					returnToShelf(gridContainers[x][y].med);
 					return SUCCESS;
 				}
