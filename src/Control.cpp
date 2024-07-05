@@ -9,6 +9,7 @@
 #include <iostream>
 #include "defines.hpp"
 #include <string.h>
+#include <unistd.h>
 
 class Control {
 public:
@@ -17,17 +18,38 @@ public:
 };
 
 int main()
-{
+{    
+    // Motor motorUnitTest;
+    // if (motorUnitTest.motorSetup() != 0)
+    // {
+    //     printf("Error: motor setup returned non-zero\n");
+    //     return 0;
+    // }
+    
+    // uint32_t mspeed = 450;
+    // uint32_t pulses = 4300;
+    // uint32_t input = 0;
+    // for(;;)
+    // {
+    //     motorUnitTest.move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, 0, pulses, mspeed);
+    //     usleep(1000000);
+    //     motorUnitTest.move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, 1, pulses, mspeed);
+    //     cin >> input;
+    // }
+
+    // //0 is extending
+
+    // for(;;);
     uint32_t returnValue = SUCCESS;
     MedicineDatabase medData;
     Motor motorUnit;
     Grid grid{&motorUnit, &medData, GRID_DIM_X, GRID_DIM_Y, 5 /* X units */, 4 /* Y units */};
 
-    // if (motorUnit.motorSetup() != 0)
-    // {
-    //     printf("Error: motor setup returned non-zero\n");
-    //     return returnValue;
-    // }
+    if (motorUnit.motorSetup() != 0)
+    {
+        printf("Error: motor setup returned non-zero\n");
+        return returnValue;
+    }
 
     //Test grid functions
     grid.printGrid();
@@ -65,13 +87,9 @@ int main()
             {
                 printf("Error");
             }
-            else
-            {
-                continue;
-            }
         }
 
-        else //return
+        else if(fetchOrReturn == "return")//return
         {
             printf("Scan barcode - ");
             cin >> medicationBarcode;
@@ -80,11 +98,8 @@ int main()
             {
                 printf("Error");
             }
-            else
-            {
-                continue;
-            }
         }
+        grid.moveXY(grid.currentCoord, {0,0});
 
     }
 

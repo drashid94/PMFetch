@@ -13,6 +13,7 @@
 // Define motor direction pin constants
 #define X_MOTOR_DIR_PIN 19
 #define Y_MOTOR_DIR_PIN 20
+#define Z_MOTOR_DIR_PIN 21
 
 // TODO Define pulses_per_centimeter x and y. Placeholder values rn
 #define X_PULSES_PER_CENTIMETER 2

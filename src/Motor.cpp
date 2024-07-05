@@ -57,12 +57,9 @@ uint32_t Motor::move(uint32_t motorPin, uint32_t motorDirPin, uint32_t direction
 {
     //Dont do if Z motor
     printf("Movement function called\n");
-    if(motorPin != Z_MOTOR_PIN)
-    {
-        printf("Motor: MotorPin: %d Direction: %d\n", motorPin, direction);
-        lgGpioWrite(h, motorDirPin, direction);
-        usleep(10);
-    }
+    printf("Motor: MotorPin: %d Direction: %d\n", motorPin, direction);
+    lgGpioWrite(h, motorDirPin, direction);
+    usleep(100);
     printf("Motor: Pulses: %d\n", pulses);
     for(uint32_t i = 0; i < pulses; i++)
     {
@@ -93,7 +90,8 @@ uint32_t Motor::motorSetup()
     if(status != LG_OKAY) { EXIT_FUNCTION(returnValue, ERROR_MOTOR_GPIO_CLAIM_OUT); }
     status = lgGpioClaimOutput(h, 0, Z_MOTOR_PIN, 0);
     if(status != LG_OKAY) { EXIT_FUNCTION(returnValue, ERROR_MOTOR_GPIO_CLAIM_OUT); }
-
+    status = lgGpioClaimOutput(h, 0, Z_MOTOR_DIR_PIN, 0);
+    if(status != LG_OKAY) { EXIT_FUNCTION(returnValue, ERROR_MOTOR_GPIO_CLAIM_OUT); }
     EXIT_POINT
     return returnValue;
 
