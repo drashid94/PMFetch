@@ -4,6 +4,7 @@
 #include "MedicineDatabase.hpp"
 #include "Motor.hpp"
 #include "defines.hpp"
+#include <pthread.h>
 #include <vector>
 
 struct GridUnit
@@ -36,6 +37,7 @@ public:
 	uint32_t fetchFromShelfByName (string medicationName); // search grid by name and call fetchfromshelf
 	uint32_t returnToShelf(const Medicine& medication); // calls move from motor unit
 	uint32_t fetchFromShelf(const Medicine& medication); // calls move from motor unit
+	uint32_t Grid::returnToShelf();
 
 
 private:
@@ -50,6 +52,7 @@ public:
 	uint32_t pulsesPerExtendZ;
 	ShelfCoord currentCoord;
 	ShelfCoord pickupLocation;
+	ShelfCoord returnLocations[3];
 
 	Motor* motorUnit;
 	const std::vector<Medicine>* medicineDatabase; // populated by calling getAllMedicines() from medicine database?

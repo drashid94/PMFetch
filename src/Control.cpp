@@ -107,13 +107,18 @@ uint32_t Control::control(void)
 
         else if(fetchOrReturn == "return")//return
         {
+            if (grid.returnToShelf() == 1)
+            {
+                printf("Error");
+            };
+            /*
             printf("Scan barcode - ");
             cin >> medicationBarcode;
 
             if (grid.returnToShelfByBarcode(medicationBarcode) == 1)
             {
                 printf("Error");
-            }
+            }*/
         }
         grid.moveXY(grid.currentCoord, {0,0});
 

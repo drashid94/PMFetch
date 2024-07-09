@@ -21,7 +21,8 @@ Grid::Grid(Motor* motorUnitIn, MedicineDatabase* medicineDatabaseIn, int xdimens
 		//return out of bounds grid error
     }
     currentCoord = {0, 0};
-    pickupLocation = {3, 3};
+    pickupLocation = {3, 3}; // rightmost column of the bottom row
+	returnLocations = {{3, 0}, {3, 1}, {3, 2}}; // 3 leftmost columns of the bottom row
     // Calculate pulses per unit for each dimension
 	pulsesPerUnitX = 1200;
 	pulsesPerUnitY = 16000;
@@ -143,6 +144,7 @@ void Grid::isMedValid(Medicine * med, bool &valid)
 
 uint32_t Grid::returnToShelfByBarcode (string barcode) // search grid by name and call returntoshelf
 {
+	uint32_t returnValue = 1;
 	for(uint32_t x = 0; x < gridContainers.size(); x++)
 	{
 		for (uint32_t y = 0; y < gridContainers[x].size(); y++)
@@ -154,13 +156,12 @@ uint32_t Grid::returnToShelfByBarcode (string barcode) // search grid by name an
 					printf("PLace item in drop off, then click enter -");
 					cin.ignore();
 					cin.ignore();
-					returnToShelf(gridContainers[x][y].med);
-					return SUCCESS;
+					returnValue = returnToShelf(gridContainers[x][y].med);
 				}
 			}
 		}
 	}
-	return 1;
+	return returnValue;
 }
 
 uint32_t Grid::fetchFromShelfByName (string medicationName) // search grid by name and call fetchfromshelf
@@ -282,6 +283,49 @@ uint32_t Grid::moveXY(ShelfCoord coordCurr, ShelfCoord coordDest)
 	currentCoord = coordDest;
 	return SUCCESS;
 
+}
+
+void getBarcode(string & barcode)
+{
+	cin >> barcode;
+}
+void timeout()
+{
+	usleep(5*1000000); // 5 second wait
+}
+
+uint32_t Grid::returnToShelf() {
+	string returnBarcodes[sizeof(returnLocations)];
+
+	// Move to all pick up locations and scan barcodes
+	for (int i = 0; i< sizeof(returnLocations); i++)
+	{
+		returnValue = moveXY(currentCoord, returnLocations[i]);
+
+		// Two threads to read barcode and timeout
+		pthread_t readBarcode_thread, timeout_thread;
+
+		if (pthread_create(&readBarcode_thread, NULL, (void*)getBarcode(returnBarcodes[i]), NULL) != 0) {
+			return 1;
+		}
+
+		// Create separate thread for timeout
+		if (pthread_create(&timeout_thread, NULL, (void*)timeout, NULL) != 0) {
+			return 1;
+		}
+
+		// Wait for timeout threads to finish
+		if (pthread_join(timeout_thread, NULL) != 1)
+		{
+			pthread_cancel(readBarcode_thread);
+		}
+	}
+
+	for (int i = 0; i< sizeof(returnLocations); i++)
+	{
+		// Check if barcode is valid or was entered
+		returnToShelfByBarcode (string barcode);
+	}
 }
 
 uint32_t Grid::returnToShelf(const Medicine& medication) {

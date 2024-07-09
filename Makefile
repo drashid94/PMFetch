@@ -18,7 +18,7 @@ all: $(EXECUTABLE)
 
 # Rule to link object files into the executable
 $(EXECUTABLE): $(OBJECTS)
-	$(CXX) $(OBJECTS) -o $(EXECUTABLE) -llgpio
+	$(CXX) $(OBJECTS) -o $(EXECUTABLE) -llgpio -pthread
 
 # Rule to compile individual .cpp files into .o files
 %.o: %.cpp
