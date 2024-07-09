@@ -10,20 +10,20 @@
 #include "defines.hpp"
 #include <string.h>
 #include <unistd.h>
+#include "Sensors.h"
 
 class Control
 {
-
+public:
     Control();
     uint32_t calibrate(void);
-    static uint32_t control(void);
-    private:
+    uint32_t control(void);
+private:
     Motor motorUnit;
     MedicineDatabase medData;
-    Grid grid{&motorUnit, &medData, GRID_DIM_X, GRID_DIM_Y, 5 /* X units */, 4 /* Y units */};
-    
+    Grid grid{&motorUnit, &medData, GRID_DIM_X, GRID_DIM_Y, 5 /* X units */, 4 /* Y units */};    
 
-}
+};
 
 Control::Control()
 {
@@ -44,33 +44,12 @@ uint32_t Control::calibrate(void)
     motorUnit.move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, RETRACT, UINT32_MAX, Z_MOTOR_SPEED, true);
 
     grid.currentCoord = {0,0};
+    return returnValue;
 
 }
 
 uint32_t Control::control(void)
 {
-    // Motor motorUnitTest;
-    // if (motorUnitTest.pinSetup() != 0)
-    // {
-    //     printf("Error: motor setup returned non-zero\n");
-    //     return 0;
-    // }
-    
-    // uint32_t mspeed = 450;
-    // uint32_t pulses = 4300;
-    // uint32_t input = 0;
-    // for(;;)
-    // {
-    //     motorUnitTest.move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, 0, pulses, mspeed);
-    //     usleep(1000000);
-    //     motorUnitTest.move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, 1, pulses, mspeed);
-    //     cin >> input;
-    // }
-
-    // //0 is extending
-
-    // for(;;);
-
     uint32_t returnValue = SUCCESS;
 
     if (motorUnit.pinSetup() != 0)
@@ -78,6 +57,17 @@ uint32_t Control::control(void)
         printf("Error: motor setup returned non-zero\n");
         return returnValue;
     }
+    sensorPinSetup(motorUnit.h);
+
+    bool sensVal = false;
+    grid.extendZ();
+    for(;;)
+    {
+        get_y_sensor_value(sensVal);
+        cout << sensVal << "\n";
+        usleep(100000);
+    }
+    calibrate();
 
     //Test grid functions
     grid.printGrid();
@@ -132,6 +122,7 @@ uint32_t Control::control(void)
 
 int main()
 {    
-    Control.control();
+    Control controlUnit;
+    controlUnit.control();
     return 0;
 }

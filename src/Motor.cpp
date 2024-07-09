@@ -95,7 +95,6 @@ uint32_t Motor::pinSetup()
     uint32_t status;
     std::cout << "Running Motor Setup Routine\n";
     h = lgGpiochipOpen(4); // open /dev/gpiochip0
-    lgGpioHandle = h;
     if (h < 0) { EXIT_FUNCTION(returnValue, ERROR_MOTOR_GPIO_CHIP_OPEN); }
     
     status = lgGpioClaimOutput(h, 0, X_MOTOR_PIN, 0);
@@ -109,6 +108,12 @@ uint32_t Motor::pinSetup()
     status = lgGpioClaimOutput(h, 0, Z_MOTOR_PIN, 0);
     if(status != LG_OKAY) { EXIT_FUNCTION(returnValue, ERROR_MOTOR_GPIO_CLAIM_OUT); }
     status = lgGpioClaimOutput(h, 0, Z_MOTOR_DIR_PIN, 0);
+    if(status != LG_OKAY) { EXIT_FUNCTION(returnValue, ERROR_MOTOR_GPIO_CLAIM_OUT); }
+    status = lgGpioClaimInput(h, 0, X_CONTACT_SENSOR_PIN);
+    if(status != LG_OKAY) { EXIT_FUNCTION(returnValue, ERROR_MOTOR_GPIO_CLAIM_OUT); }
+    status = lgGpioClaimInput(h, 0, Y_CONTACT_SENSOR_PIN);
+    if(status != LG_OKAY) { EXIT_FUNCTION(returnValue, ERROR_MOTOR_GPIO_CLAIM_OUT); }
+    status = lgGpioClaimInput(h, 0, Z_CONTACT_SENSOR_PIN);
     if(status != LG_OKAY) { EXIT_FUNCTION(returnValue, ERROR_MOTOR_GPIO_CLAIM_OUT); }
     EXIT_POINT
     return returnValue;

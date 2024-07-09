@@ -46,7 +46,8 @@ private:
 public:
 	uint32_t pulsesPerUnitX;
 	uint32_t pulsesPerUnitY;
-	uint32_t pulsesPerLiftY;	
+	uint32_t pulsesPerLiftY;
+	uint32_t pulsesPerExtendZ;
 	ShelfCoord currentCoord;
 	ShelfCoord pickupLocation;
 

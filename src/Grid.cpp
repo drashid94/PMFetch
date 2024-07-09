@@ -26,6 +26,7 @@ Grid::Grid(Motor* motorUnitIn, MedicineDatabase* medicineDatabaseIn, int xdimens
 	pulsesPerUnitX = 1200;
 	pulsesPerUnitY = 16000;
 	pulsesPerLiftY = 3000;
+	pulsesPerExtendZ = 4500;
 
 	gridContainers.resize(numUnitsY);
 	for(uint32_t i = 0; i < gridContainers.size(); i++)
@@ -229,14 +230,13 @@ uint32_t Grid::shelfSetup() {
 
 uint32_t Grid::extendZ()
 {
-	motorUnit->move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, EXTEND, 4500, Z_MOTOR_SPEED);
+	motorUnit->move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, EXTEND, pulsesPerExtendZ, Z_MOTOR_SPEED);
 	return SUCCESS;
 }
 
 uint32_t Grid::retractZ()
 {
-	//Will implement once Z axis design finalized
-	motorUnit->move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, RETRACT, 4500, Z_MOTOR_SPEED);
+	motorUnit->move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, RETRACT, pulsesPerExtendZ, Z_MOTOR_SPEED);
 	return SUCCESS;
 }
 

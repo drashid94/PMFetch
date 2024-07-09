@@ -25,6 +25,11 @@ class Motor
         Motor();
         // Function to move a motor
         uint32_t move(uint32_t motorPin, uint32_t motorDirPin, uint32_t direction, uint32_t pulses, uint32_t motorSpeed, bool pollSensor);
+        uint32_t move(uint32_t motorPin, uint32_t motorDirPin, uint32_t direction, uint32_t pulses, uint32_t motorSpeed)
+        {
+            uint32_t returnValue = move(motorPin, motorDirPin, direction, pulses, motorSpeed, false);
+            return returnValue;
+        }
         //void move(uint32_t handle, uint32_t motorPin, uint32_t motorDirPin, uint32_t direction, uint32_t lift);
         uint32_t pinSetup();
         int h; //gpioHandle for lgpio
