@@ -12,11 +12,6 @@
 #include <string.h>
 #include <iostream>
 
-#define RIGHT 0
-#define UP 0
-#define LEFT 1
-#define DOWN 1
-
 Grid::Grid() 
 { }
 
@@ -234,15 +229,14 @@ uint32_t Grid::shelfSetup() {
 
 uint32_t Grid::extendZ()
 {
-	//Will implement once Z axis design finalized
-	printf("Extending Z\n");
+	motorUnit->move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, EXTEND, 4500, Z_MOTOR_SPEED);
 	return SUCCESS;
 }
 
 uint32_t Grid::retractZ()
 {
 	//Will implement once Z axis design finalized
-	printf("Retracting Z\n");
+	motorUnit->move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, RETRACT, 4500, Z_MOTOR_SPEED);
 	return SUCCESS;
 }
 
@@ -255,7 +249,7 @@ uint32_t Grid::containerLiftOrPlace(bool lift)
 	numPulses = pulsesPerLiftY;
 	direction = DOWN;
 	if(lift) direction = UP;
-	motorUnit->move(Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, direction, numPulses, yMotorSpeed);
+	motorUnit->move(Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, direction, numPulses, Y_MOTOR_SPEED);
 	return SUCCESS;
 
 }
@@ -274,7 +268,7 @@ uint32_t Grid::moveXY(ShelfCoord coordCurr, ShelfCoord coordDest)
 
 	numUnits = abs(xMove);
 	numPulses = pulsesPerUnitX * numUnits;
-	motorUnit->move(X_MOTOR_PIN, X_MOTOR_DIR_PIN, direction, numPulses, xMotorSpeed);
+	motorUnit->move(X_MOTOR_PIN, X_MOTOR_DIR_PIN, direction, numPulses, X_MOTOR_SPEED);
 
 	//Move to destination Y COORD
 	int yMove = coordCurr.y - coordDest.y;
@@ -283,7 +277,7 @@ uint32_t Grid::moveXY(ShelfCoord coordCurr, ShelfCoord coordDest)
 	
 	numUnits = abs(yMove);
 	numPulses = pulsesPerUnitY * numUnits;
-	motorUnit->move(Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, direction, numPulses, yMotorSpeed);
+	motorUnit->move(Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, direction, numPulses, Y_MOTOR_SPEED);
 	
 	currentCoord = coordDest;
 	return SUCCESS;

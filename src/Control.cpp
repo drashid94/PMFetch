@@ -11,16 +11,46 @@
 #include <string.h>
 #include <unistd.h>
 
-class Control {
-public:
-    int calibrate();
-    // more control functions to be added
-};
+class Control
+{
 
-int main()
-{    
+    Control();
+    uint32_t calibrate(void);
+    static uint32_t control(void);
+    private:
+    Motor motorUnit;
+    MedicineDatabase medData;
+    Grid grid{&motorUnit, &medData, GRID_DIM_X, GRID_DIM_Y, 5 /* X units */, 4 /* Y units */};
+    
+
+}
+
+Control::Control()
+{
+
+}
+
+uint32_t Control::calibrate(void)
+{
+    uint32_t returnValue = SUCCESS;
+    //Calibrate X 
+    //Move left infinite with sensorPolling on
+    motorUnit.move(X_MOTOR_PIN, X_MOTOR_DIR_PIN, LEFT, UINT32_MAX, X_MOTOR_SPEED, true);
+
+    //Calibrate Y
+    motorUnit.move(Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, UP, UINT32_MAX, Y_MOTOR_SPEED, true);
+
+    //Calibrate Z
+    motorUnit.move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, RETRACT, UINT32_MAX, Z_MOTOR_SPEED, true);
+
+    grid.currentCoord = {0,0};
+
+}
+
+uint32_t Control::control(void)
+{
     // Motor motorUnitTest;
-    // if (motorUnitTest.motorSetup() != 0)
+    // if (motorUnitTest.pinSetup() != 0)
     // {
     //     printf("Error: motor setup returned non-zero\n");
     //     return 0;
@@ -40,12 +70,10 @@ int main()
     // //0 is extending
 
     // for(;;);
-    uint32_t returnValue = SUCCESS;
-    MedicineDatabase medData;
-    Motor motorUnit;
-    Grid grid{&motorUnit, &medData, GRID_DIM_X, GRID_DIM_Y, 5 /* X units */, 4 /* Y units */};
 
-    if (motorUnit.motorSetup() != 0)
+    uint32_t returnValue = SUCCESS;
+
+    if (motorUnit.pinSetup() != 0)
     {
         printf("Error: motor setup returned non-zero\n");
         return returnValue;
@@ -66,8 +94,6 @@ int main()
     // // grid.moveXY(curr, dest);
     // cout << "Current Coord: (" << grid.currentCoord.x << "," << grid.currentCoord.y << ")\n";
     
-   
-
     for(;;)
     {
 
@@ -102,6 +128,10 @@ int main()
         grid.moveXY(grid.currentCoord, {0,0});
 
     }
+}
 
+int main()
+{    
+    Control.control();
     return 0;
 }

@@ -9,6 +9,19 @@
 #define GRID_MAX_X 5
 #define GRID_MAX_Y 5
 
+#define RIGHT 0
+#define UP 0
+#define LEFT 1
+#define DOWN 1
+#define EXTEND 0
+#define RETRACT 1
+
+#define Y_MOTOR_SPEED = 200;
+#define X_MOTOR_SPEED = 750;
+#define Z_MOTOR_SPEED = 350;	
+
+uint32_t lgGpioHandle = 0;
+
 struct ShelfCoord
 {
     int x;

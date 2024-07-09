@@ -5,6 +5,7 @@
 #include "errors.hpp"
 #include "defines.hpp"
 #include <iostream>
+#include "Sensors.h"
 
 // void move(uint32_t h, uint32_t motorPin, uint32_t motorDirPin, uint32_t direction, uint32_t lift)
 // {
@@ -53,31 +54,48 @@
 
 Motor::Motor() { }
 
-uint32_t Motor::move(uint32_t motorPin, uint32_t motorDirPin, uint32_t direction, uint32_t pulses, uint32_t motorSpeed)
-{
-    //Dont do if Z motor
+uint32_t Motor::move(uint32_t motorPin, uint32_t motorDirPin, uint32_t direction, uint32_t pulses, uint32_t motorSpeed, bool pollSensor)
+{    
     printf("Movement function called\n");
     printf("Motor: MotorPin: %d Direction: %d\n", motorPin, direction);
     lgGpioWrite(h, motorDirPin, direction);
-    usleep(100);
+    usleep(10000);
     printf("Motor: Pulses: %d\n", pulses);
+    uint32_t pollCounter = 0;
     for(uint32_t i = 0; i < pulses; i++)
     {
+        if(pollSensor && pollCounter > 4)
+        {
+            bool contactVal = 0;
+            if(motorPin == X_MOTOR_PIN)
+                get_x_sensor_value(contactVal);
+            if(motorPin == Y_MOTOR_PIN)
+                get_y_sensor_value(contactVal);
+            if(motorPin == Z_MOTOR_PIN)
+                get_z_sensor_value(contactVal);
+            if(contactVal)
+            {
+                std::cout << "Contact Sensor Pushed\nExiting movement function\n";
+                break;
+            }
+            pollCounter = 0;
+        }
         lgGpioWrite(h, motorPin, 1);
         usleep(motorSpeed);
         lgGpioWrite(h, motorPin, 0);
         usleep(motorSpeed);
+        pollCounter++;
     }
     return SUCCESS;
 }
 
-uint32_t Motor::motorSetup()
+uint32_t Motor::pinSetup()
 {
     uint32_t returnValue = SUCCESS;
     uint32_t status;
     std::cout << "Running Motor Setup Routine\n";
     h = lgGpiochipOpen(4); // open /dev/gpiochip0
-
+    lgGpioHandle = h;
     if (h < 0) { EXIT_FUNCTION(returnValue, ERROR_MOTOR_GPIO_CHIP_OPEN); }
     
     status = lgGpioClaimOutput(h, 0, X_MOTOR_PIN, 0);
