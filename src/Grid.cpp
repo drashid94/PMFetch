@@ -22,7 +22,9 @@ Grid::Grid(Motor* motorUnitIn, MedicineDatabase* medicineDatabaseIn, int xdimens
     }
     currentCoord = {0, 0};
     pickupLocation = {3, 3}; // rightmost column of the bottom row
-	returnLocations = {{3, 0}, {3, 1}, {3, 2}}; // 3 leftmost columns of the bottom row
+	returnLocations[0] = {3, 0};
+	returnLocations[1] = {3, 1};
+	returnLocations[2] = {3, 2}; // 3 leftmost columns of the bottom row
     // Calculate pulses per unit for each dimension
 	pulsesPerUnitX = 1200;
 	pulsesPerUnitY = 16000;
@@ -285,46 +287,45 @@ uint32_t Grid::moveXY(ShelfCoord coordCurr, ShelfCoord coordDest)
 
 }
 
-void getBarcode(string & barcode)
+struct threadArguments {
+  int* valuePtr;
+  // Add other members for additional data
+};
+
+void * getBarcode(void * barcode)
 {
-	cin >> barcode;
-}
-void timeout()
-{
-	usleep(5*1000000); // 5 second wait
+	threadArguments* barcodes = (threadArguments*) barcode;
+
+	cin >> *barcodes->valuePtr;
+	return NULL;
 }
 
 uint32_t Grid::returnToShelf() {
-	string returnBarcodes[sizeof(returnLocations)];
+	string returnBarcodes[NUM_RETURN_LOCATIONS];
 
 	// Move to all pick up locations and scan barcodes
-	for (int i = 0; i< sizeof(returnLocations); i++)
+	for (int i = 0; i< NUM_RETURN_LOCATIONS; i++)
 	{
-		returnValue = moveXY(currentCoord, returnLocations[i]);
+		if(moveXY(currentCoord, returnLocations[i]) != 0)
+		{
+			return 1;
+		}
 
 		// Two threads to read barcode and timeout
-		pthread_t readBarcode_thread, timeout_thread;
+		pthread_t readBarcode_thread;
 
-		if (pthread_create(&readBarcode_thread, NULL, (void*)getBarcode(returnBarcodes[i]), NULL) != 0) {
+		if (pthread_create(&readBarcode_thread, NULL, getBarcode, NULL) != 0) {
 			return 1;
 		}
 
-		// Create separate thread for timeout
-		if (pthread_create(&timeout_thread, NULL, (void*)timeout, NULL) != 0) {
-			return 1;
-		}
-
-		// Wait for timeout threads to finish
-		if (pthread_join(timeout_thread, NULL) != 1)
-		{
-			pthread_cancel(readBarcode_thread);
-		}
+		usleep(1*1000000); // 1 second wait
+		pthread_cancel(readBarcode_thread);
 	}
 
-	for (int i = 0; i< sizeof(returnLocations); i++)
+	for (int i = 0; i< NUM_RETURN_LOCATIONS; i++)
 	{
 		// Check if barcode is valid or was entered
-		returnToShelfByBarcode (string barcode);
+		returnToShelfByBarcode (returnBarcodes[i]);
 	}
 }
 

@@ -20,6 +20,8 @@
 #define X_MOTOR_SPEED 750
 #define Z_MOTOR_SPEED 350	
 
+#define NUM_RETURN_LOCATIONS 3
+
 struct ShelfCoord
 {
     int x;

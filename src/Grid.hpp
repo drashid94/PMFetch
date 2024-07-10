@@ -6,6 +6,7 @@
 #include "defines.hpp"
 #include <pthread.h>
 #include <vector>
+#include <unistd.h>
 
 struct GridUnit
 {
@@ -37,7 +38,7 @@ public:
 	uint32_t fetchFromShelfByName (string medicationName); // search grid by name and call fetchfromshelf
 	uint32_t returnToShelf(const Medicine& medication); // calls move from motor unit
 	uint32_t fetchFromShelf(const Medicine& medication); // calls move from motor unit
-	uint32_t Grid::returnToShelf();
+	uint32_t returnToShelf();
 
 
 private:
@@ -45,6 +46,9 @@ private:
 	uint32_t addNewItemToGrid(GridUnit * gridUnit);
 	uint32_t permanantlyRemoveFromGrid(Medicine * med);
 	uint32_t updateGrid(ShelfCoord shelfCoord, bool returning);
+	//void *getBarcode(string & barcode);
+	//void *timeout();
+
 public:
 	uint32_t pulsesPerUnitX;
 	uint32_t pulsesPerUnitY;

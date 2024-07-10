@@ -9,7 +9,6 @@
 #include <iostream>
 #include "defines.hpp"
 #include <string.h>
-#include <unistd.h>
 #include "Sensors.h"
 
 class Control
