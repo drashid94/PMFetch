@@ -264,6 +264,8 @@ uint32_t Grid::moveXY(ShelfCoord coordCurr, ShelfCoord coordDest)
 	uint8_t numUnits = 0;
 	uint32_t numPulses = 0;
 
+	pthread_t ptidx;
+	pthread_t ptidy;
 	//Move to destination X COORD
 	int xMove = coordCurr.x - coordDest.x;
 	if(xMove > 0){ direction = LEFT; }
@@ -271,8 +273,8 @@ uint32_t Grid::moveXY(ShelfCoord coordCurr, ShelfCoord coordDest)
 
 	numUnits = abs(xMove);
 	numPulses = pulsesPerUnitX * numUnits;
-	motorUnit->move(X_MOTOR_PIN, X_MOTOR_DIR_PIN, direction, numPulses, X_MOTOR_SPEED);
-
+	motorUnit->move(X_MOTOR_PIN, X_MOTOR_DIR_PIN, direction, numPulses, X_MOTOR_SPEED, &ptidx);
+	
 	//Move to destination Y COORD
 	int yMove = coordCurr.y - coordDest.y;
 	if(yMove > 0){ direction = UP; }
@@ -280,11 +282,14 @@ uint32_t Grid::moveXY(ShelfCoord coordCurr, ShelfCoord coordDest)
 	
 	numUnits = abs(yMove);
 	numPulses = pulsesPerUnitY * numUnits;
-	motorUnit->move(Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, direction, numPulses, Y_MOTOR_SPEED);
+	motorUnit->move(Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, direction, numPulses, Y_MOTOR_SPEED, &ptidy);
+
+	pthread_join(ptidx, NULL);
+	pthread_join(ptidy, NULL);
+	std::cout << "Finished Executing Thread\n";
 	
 	currentCoord = coordDest;
 	return SUCCESS;
-
 }
 
 struct threadArguments {

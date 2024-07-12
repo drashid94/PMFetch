@@ -50,18 +50,30 @@
 //     }
 // }
 
-
+struct MovementInfo
+{
+    uint32_t motorPin; 
+    uint32_t motorDirPin; 
+    uint32_t direction; 
+    uint32_t pulses;
+    uint32_t motorSpeed;
+    bool pollSensor;
+} MovementInfo;
 
 Motor::Motor() { }
 
-uint32_t Motor::move(uint32_t motorPin, uint32_t motorDirPin, uint32_t direction, uint32_t pulses, uint32_t motorSpeed, bool pollSensor)
-{    
-    printf("Movement function called\n");
-    printf("Motor: MotorPin: %d Direction: %d\n", motorPin, direction);
-    lgGpioWrite(h, motorDirPin, direction);
-    usleep(10000);
-    printf("Motor: Pulses: %d\n", pulses);
+void *moveFunc(void * moveParams)
+{
+    MovementInfo *movementInfo;
+    movementInfo = (MovementInfo*)moveParams;
+    uint32_t motorPin = movementInfo.motorPin; 
+    uint32_t motorDirPin = movementInfo.motorDirPin;
+    uint32_t direction = movementInfo.direction;
+    uint32_t pulses = movementInfo.pulses;
+    uint32_t motorSpeed = movementInfo.motorSpeed;
+    bool pollSensor = movementInfo.pollSensor;
     uint32_t pollCounter = 0;
+    cout << "Creating " << pulses << " pulses\n";
     for(uint32_t i = 0; i < pulses; i++)
     {
         if(pollSensor && pollCounter > 4)
@@ -86,6 +98,22 @@ uint32_t Motor::move(uint32_t motorPin, uint32_t motorDirPin, uint32_t direction
         usleep(motorSpeed);
         pollCounter++;
     }
+    pthread_exit(NULL);
+}
+
+uint32_t Motor::move(uint32_t motorPin, uint32_t motorDirPin, uint32_t direction, uint32_t pulses, uint32_t motorSpeed, bool pollSensor, pthread_t *ptid)
+{    
+    printf("Movement function called\n");
+    printf("Motor: MotorPin: %d Direction: %d\n", motorPin, direction);
+    lgGpioWrite(h, motorDirPin, direction);
+    usleep(10000);
+    printf("Motor: Pulses: %d\n", pulses);
+    std::cout << "Creating thread\n";
+    pthread_t pthreadId;
+    *ptid = pthreadId; // caller will call join on the thread ID
+    MovementInfo mInfo = {motorPin, motorDirPin, direction, pulses, motorSpeed, pollSensor};
+    pthread_create(&ptid, NULL, &moveFunc, (void*)mInfo);
+
     return SUCCESS;
 }
 
