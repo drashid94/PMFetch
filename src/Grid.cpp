@@ -136,17 +136,29 @@ uint32_t Grid::addNewItemToGrid(GridUnit * gridUnit)
 	return SUCCESS;
 }
 
-void Grid::isMedValid(Medicine * med, bool &valid)
+void Grid::isMedValid(string barcode)
 {
-	//TODO checks
-	//Check bcode doesnt already exist on shelf and validity of values	
-	(void)med;
-	valid = true;
+	uint32_t returnValue = SUCCESS;
+	for(uint32_t x = 0; x < gridContainers.size(); x++)
+	{
+		for (uint32_t y = 0; y < gridContainers[x].size(); y++)
+		{
+			if (gridContainers[x][y].occupied == true)
+			{
+				if(gridContainers[x][y].med.barcode == barcode)
+				{
+					return returnValue;
+				}
+			}
+		}
+	}
+	returnValue = 1;
+	return returnValue;
 }
 
 uint32_t Grid::returnToShelfByBarcode (string barcode) // search grid by name and call returntoshelf
 {
-	uint32_t returnValue = 1;
+	uint32_t returnValue = SUCCESS;
 	for(uint32_t x = 0; x < gridContainers.size(); x++)
 	{
 		for (uint32_t y = 0; y < gridContainers[x].size(); y++)
@@ -162,6 +174,71 @@ uint32_t Grid::returnToShelfByBarcode (string barcode) // search grid by name an
 				}
 			}
 		}
+	}
+	return returnValue;
+}
+
+uint32_t Grid::fetchFromShelfByBarcode(string barcode)
+{
+	uint32_t returnValue = SUCCESS;
+	for(uint32_t x = 0; x < gridContainers.size(); x++)
+	{
+		for (uint32_t y = 0; y < gridContainers[x].size(); y++)
+		{
+			if (gridContainers[x][y].occupied && gridContainers[x][y].med.onShelf)
+			{
+				if(gridContainers[x][y].med.barcode == barcode)
+				{
+					std::cout << "Barcode recognized as " << gridContainers[x][y].med.medication_name;
+					returnValue = fetchFromShelf(gridContainers[x][y].med);
+				}				
+			}
+		}
+	}
+	return returnValue;
+}
+
+uint32_t Grid::getMedFromBarcode(string barcode, Medicine *med)
+{
+	uint32_t returnValue = SUCCESS;
+	for(uint32_t x = 0; x < gridContainers.size(); x++)
+	{
+		for (uint32_t y = 0; y < gridContainers[x].size(); y++)
+		{
+			if (gridContainers[x][y].occupied && gridContainers[x][y].med.onShelf)
+			{
+				if(gridContainers[x][y].med.barcode == barcode)
+				{
+					med = &gridContainers[x][y].med;
+					return SUCCESS;
+				}				
+			}
+		}
+	}
+	returnValue = 1;
+	return returnValue;
+}
+
+uint32_t Grid::deleteFromShelf(string barcode)
+{
+	Medicine med;
+	uint32_t returnValue = SUCCESS;
+	if(getMedFromBarcode(barcode, &med))
+	{
+		if(med.onShelf)
+		{
+			std::cout << "Cannot delete something on the shelf\nFetch first\n";
+			returnValue = 1;
+		}
+		else
+		{
+			gridContainers[med.coord.x][med.coord.y].occupied = false;
+		}
+	}
+	else
+	{
+		std::cout << "Could not find medicine\n"
+		reutrnValue = 1;
 	}
 	return returnValue;
 }
@@ -395,9 +472,14 @@ uint32_t Grid::fetchFromShelf(const Medicine& medication) {
 
 	/* --------------------- dropoff at pickup location ------------------- */
 
-	//Move to pickup location
-	returnValue = moveXY(currentCoord, pickupLocation);
-
+	string barcode;
+	//Move to pickup locations
+	for(int i = 0; i < NUM_RETURN_LOCATIONS; i++)
+	{
+		returnValue = moveXY(currentCoord, returnLocations[i]);
+		cin >> barcode;
+	}
+	
 	//Extend Z
 	returnValue = extendZ();
 

@@ -21,6 +21,7 @@
 #define Z_MOTOR_SPEED 350	
 
 #define NUM_RETURN_LOCATIONS 3
+#define FETCH_QUEUE_MAX_SIZE 36
 
 struct ShelfCoord
 {

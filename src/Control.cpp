@@ -17,16 +17,18 @@ public:
     Control();
     uint32_t calibrate(void);
     uint32_t control(void);
+    uint32_t bcodeControl(void);
 private:
     Motor motorUnit;
     MedicineDatabase medData;
+    vector<string> fetchQueue;
     Grid grid{&motorUnit, &medData, GRID_DIM_X, GRID_DIM_Y, 5 /* X units */, 4 /* Y units */};    
 
 };
 
 Control::Control()
 {
-
+    fetchQueue.resize(FETCH_QUEUE_MAX_SIZE);
 }
 
 uint32_t Control::calibrate(void)
@@ -47,16 +49,119 @@ uint32_t Control::calibrate(void)
 
 }
 
-uint32_t Control::control(void)
+uint32_t Control::bcodeControl(void)
 {
-    uint32_t returnValue = SUCCESS;
+    uint32_t returnValue =  SUCCESS;
 
-    if (motorUnit.pinSetup() != 0)
+    if (motorUnit.pinSetup() != 0 || sensorPinSetup != 0)
     {
         printf("Error: motor setup returned non-zero\n");
         return returnValue;
     }
-    sensorPinSetup(motorUnit.h);
+
+    std::cout << "Initial Calibration\n";
+    calibrate();
+
+    std::cout << "Calibration complete!\nPlease scan bardcodes to begin\n";
+
+    std::string bcodeCommand;
+    
+    for(;;)
+    {
+        std::cin >> bcodeCommand;
+        if(bcodeCommand == "A-0010-Z")
+        {
+            //Add item to the shelf
+            std::cout << "Setting up the shelf\n";
+            grid.shelfSetup();
+
+        }
+        else if(bcodeCommand == "A-0020-Z")
+        {
+            std::cout << "Deleting next scanned medication\n";
+
+
+        }
+        /* Single Fetch */
+        else if(bcodeCommand == "A-0030-Z")
+        {
+            string bcode;
+            std::cout << "Fetching next scanned barcode"
+            cin >> bcode;
+            grid.fetchFromShelfByBarcode(bcode);
+        }
+        /* Multi Fetch */
+        else if(bcodeCommand == "A-0040-Z")
+        {
+            string bcode;
+            std::cout << "Fetching multiple barcodes\n";
+            int fetchQueueSize = 0;           
+            for(int i = 0; i < FETCH_QUEUE_MAX_SIZE; i++)
+            {
+                bool valid;
+                std::cin >> bcode;
+                if(grid.isMedValid(bcode) == SUCCESS)
+                {
+                    fetchQueue[i] = bcode;
+                    fetchQueueSize++;
+                }
+                else if(bcode == "A-0040-Z") break;
+                else
+                {
+                    std::cout << "Unrecognized barcode entered: " << bcode << "\n";
+                }                                
+            }
+
+            std::cout << "Fetch queue has been created\nStarting fetches\n";
+            for(int i = 0; i < fetchQueueSize; i++)
+            {
+                grid.fetchFromShelfByBarcode(fetchQueue[i]);
+            }
+
+        }
+        else if(bcodeCommand == "A-0050-Z") // Calibrate
+        {
+            calibrate();   
+        }
+        else if(bcodeCommand == "A-0060-Z") // printGrid
+        {
+            grid.printGrid();
+        }
+        else if(bcodeCommand == "A-0070-Z")
+        {
+            
+        }
+        else if(bcodeCommand == "A-0080-Z")
+        {
+            
+        }
+        else if(bcodeCommand == "A-0090-Z")
+        {
+            
+        }
+        else if(bcodeCommand == "A-0100-Z")
+        {
+            
+        }
+        else if(isMedValid(bcodeCommand) == SUCCESS)
+        {
+            grid.fetchFromShelfByBarcode(bcode);
+        }
+    }
+
+
+
+}
+
+uint32_t Control::control(void)
+{
+    uint32_t returnValue = SUCCESS;
+
+    if (motorUnit.pinSetup() != 0 || sensorPinSetup != 0)
+    {
+        printf("Error: motor setup returned non-zero\n");
+        return returnValue;
+    }
 
     bool sensVal = false;
     grid.extendZ();
@@ -127,6 +232,6 @@ uint32_t Control::control(void)
 int main()
 {    
     Control controlUnit;
-    controlUnit.control();
+    controlUnit.bcodeControl();
     return 0;
 }
