@@ -17,6 +17,7 @@ typedef struct MovementInfo
     uint32_t pulses;
     uint32_t motorSpeed;
     bool pollSensor;
+    bool sensorPushed;
 } MovementInfo;
 
 Motor::Motor() { }
@@ -30,7 +31,7 @@ static void motorRampUp(MovementInfo *movementInfo)
 
     uint32_t segments = 10;
     uint32_t numPulsesPerSeg = pulses/segments;
-    uint32_t motorSpeed = 10*motorSpeedFinal;
+    uint32_t motorSpeed = (segments+1)*motorSpeedFinal;
 
     uint32_t pollCounter = 0;
     for(uint32_t i = 0; i < segments; i++)
@@ -48,8 +49,9 @@ static void motorRampUp(MovementInfo *movementInfo)
                     get_z_sensor_value(contactVal);
                 if(contactVal)
                 {
-                    std::cout << "Contact Sensor Pushed\nExiting movement function\n";
-                    break;
+                    std::cout << "Contact Sensor on " << ((motorPin == 13) ? "x" : "y") << " pushed\nExiting rampUp function\n";
+                    movementInfo->sensorPushed = true;
+                    return;
                 }
                 pollCounter = 0;
             }
@@ -89,8 +91,9 @@ void motorRampDown(MovementInfo * movementInfo)
                     get_z_sensor_value(contactVal);
                 if(contactVal)
                 {
-                    std::cout << "Contact Sensor Pushed\nExiting movement function\n";
-                    break;
+                    std::cout << "Contact Sensor on " << ((motorPin == 13) ? "x" : "y") << " pushed\nExiting rampDown function\n";
+                    movementInfo->sensorPushed = true;
+                    return;
                 }
                 pollCounter = 0;
             }
@@ -100,7 +103,7 @@ void motorRampDown(MovementInfo * movementInfo)
             usleep(motorSpeed);
             pollCounter++;
         }
-        motorSpeed += motorSpeed;
+        motorSpeed += motorSpeed/5;
     }
     std::cout << "Final Motor Speed Reached during ramp down: " << motorSpeed << "\n";
 }
@@ -119,6 +122,7 @@ void *moveFunc(void * moveParams)
     uint32_t rampPulses = .2 * pulsesTotal;
     movementInfo->pulses = rampPulses/2;
     motorRampUp(movementInfo);
+    if(movementInfo->sensorPushed) pthread_exit(NULL);
     for(uint32_t i = 0; i < pulsesTotal - rampPulses; i++)
     {
         if(pollSensor && pollCounter > 4)
@@ -132,8 +136,8 @@ void *moveFunc(void * moveParams)
                 get_z_sensor_value(contactVal);
             if(contactVal)
             {
-                std::cout << "Contact Sensor Pushed\nExiting movement function\n";
-                break;
+                std::cout << "Contact Sensor on " << ((motorPin == 13) ? "x" : "y") << " pushed\nExiting movement function\n";
+                pthread_exit(NULL);
             }
             pollCounter = 0;
         }
@@ -155,7 +159,7 @@ uint32_t Motor::move(uint32_t motorPin, uint32_t motorDirPin, uint32_t direction
     usleep(10000);
     printf("Motor: Pulses: %d\n", pulses);
     std::cout << "Creating thread\n";
-    MovementInfo *mInfo = new MovementInfo{motorPin, motorDirPin, direction, pulses, motorSpeed, pollSensor};
+    MovementInfo *mInfo = new MovementInfo{motorPin, motorDirPin, direction, pulses, motorSpeed, pollSensor, false};
     pthread_create(ptid, NULL, &moveFunc, (void*)mInfo);
 
     return SUCCESS;

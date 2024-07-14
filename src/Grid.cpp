@@ -11,6 +11,22 @@
 #include "Grid.hpp"
 #include <string.h>
 #include <iostream>
+#include <ncurses.h>
+
+uint32_t getInputBarcode(std::string * barcode)
+{    
+
+    initscr();
+    refresh();
+    flushinp();
+    char input[100];
+    timeout(5000);
+    int retVal = getstr(input);
+    endwin();
+
+    *barcode = input;
+    return (retVal == ERR) ? 1 : SUCCESS;
+}
 
 Grid::Grid() 
 { }
@@ -21,7 +37,7 @@ Grid::Grid(Motor* motorUnitIn, MedicineDatabase* medicineDatabaseIn, int xdimens
 		//return out of bounds grid error
     }
     currentCoord = {0, 0};
-    pickupLocation = {3, 3}; // rightmost column of the bottom row
+    // pickupLocation = {3, 3}; // rightmost column of the bottom row
 	returnLocations[0] = {0, GRID_UNIT_MAX_ROW};
 	returnLocations[1] = {1, GRID_UNIT_MAX_ROW};
 	returnLocations[2] = {2, GRID_UNIT_MAX_ROW}; 
@@ -111,6 +127,7 @@ void Grid::printGrid()
 uint32_t Grid::updateGrid(ShelfCoord shelfCoord, bool returning)
 {
 	//check coord params valid
+	cout << "Updating Grid:\n " << shelfCoord.x << " " << shelfCoord.y << "\n";
 
 	gridContainers[shelfCoord.y][shelfCoord.x].med.onShelf = returning;
 	return SUCCESS;
@@ -310,19 +327,76 @@ uint32_t Grid::shelfSetup() {
 	return SUCCESS;
 }
 
+uint32_t Grid::addNewItemToGrid(string barcode)
+{
+	for(uint32_t x = 0; x < gridContainers.size(); x++)
+	{
+		for (uint32_t y = 0; y < gridContainers[x].size(); y++)
+		{
+			if(!gridContainers[x][y].occupied)
+			{
+				cout << "ANITG " << x << " " << y << "\n";
+				Medicine med = {"", barcode, {(int)(y&INT32_MAX), (int)(x&INT32_MAX)}, 1};
+				gridContainers[x][y].med = med;
+				gridContainers[x][y].occupied = true;
+				cout << "ANITG " << gridContainers[x][y].med.coord.x << " " << gridContainers[x][y].med.coord.y << "\n";
+				cout << "Added medicine to gridContainers\n";
+				return SUCCESS;
+			}
+		}
+	}
+	return 1;
+}
+
+
+
+uint32_t Grid::shelfSetupByBarcode()
+{
+	for(int i = 0; i < NUM_RETURN_LOCATIONS; i++)
+	{
+		string barcode;
+		moveXY(currentCoord, returnLocations[i], false);
+		cout << "Calling get input func\n";
+		uint32_t retval = getInputBarcode(&barcode);
+		if(retval == SUCCESS)
+		{
+			std::cout << "Container detected\nLocate empty spot on shelf\n";
+			std::cout << "BARCODE: " << barcode << "\n";			
+			if(addNewItemToGrid(barcode) != SUCCESS)
+			{
+				std::cout << "Grid: Could not place medicine on Shelf during setup\n";
+				moveXY(currentCoord, {0,0}, false);
+				return 1;
+			}
+			printGrid();
+			Medicine med;
+			getMedFromBarcode(barcode, &med);
+			std::cout << med.coord.x << " " << med.coord.y << "\n";
+			returnToShelf(med);
+			std::cout << "New container moved to shelf\n";
+		}
+		else
+		{
+			std::cout << "Container not found\nMove to next returnLocation";
+		}
+		usleep(3000000);
+	}
+	return SUCCESS;
+}
+
 uint32_t Grid::extendZ()
 {
-	pthread_t ptid;
-	motorUnit->move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, EXTEND, pulsesPerExtendZ, Z_MOTOR_SPEED, &ptid);
-	pthread_join(ptid, NULL);
+	// pthread_t ptid;
+	// motorUnit->move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, EXTEND, pulsesPerExtendZ, Z_MOTOR_SPEED, &ptid);
+	// pthread_join(ptid, NULL);
 	return SUCCESS;
 }
 
 uint32_t Grid::retractZ()
 {
-	pthread_t ptid;
-	motorUnit->move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, RETRACT, pulsesPerExtendZ, Z_MOTOR_SPEED, &ptid);
-	pthread_join(ptid, NULL);
+	// pthread_t ptid;
+	// motorUnit->move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, RETRACT, pulsesPerExtendZ, Z_MOTOR_SPEED, &ptid);
+	// pthread_join(ptid, NULL);
 	return SUCCESS;
 }
 
@@ -331,7 +405,7 @@ uint32_t Grid::containerLiftOrPlace(bool lift)
 	uint8_t direction = 0;
 	uint32_t numPulses = 0;
 
-	printf("Lifting on Y\n");
+	std::cout << ((lift) ? "Lifting" : "Placing Down") << "On Y";
 	numPulses = pulsesPerLiftY;
 	direction = DOWN;
 	if(lift) direction = UP;
@@ -347,7 +421,8 @@ uint32_t Grid::moveXY(ShelfCoord coordCurr, ShelfCoord coordDest, bool pollingOn
 {
 	uint8_t direction = 0;
 	uint8_t numUnits = 0;
-	uint32_t numPulses = 0;
+	uint32_t numXPulses = 0;
+	uint32_t numYPulses = 0;
 
 	pthread_t ptidx;
 	pthread_t ptidy;
@@ -357,8 +432,9 @@ uint32_t Grid::moveXY(ShelfCoord coordCurr, ShelfCoord coordDest, bool pollingOn
 	if(xMove < 0){ direction = RIGHT; }
 
 	numUnits = abs(xMove);
-	numPulses = pulsesPerUnitX * numUnits;
-	motorUnit->move(X_MOTOR_PIN, X_MOTOR_DIR_PIN, direction, numPulses, X_MOTOR_SPEED, pollingOn, &ptidx);
+	numXPulses = pulsesPerUnitX * numUnits;
+	// if(numXPulses > 0)
+		// motorUnit->move(X_MOTOR_PIN, X_MOTOR_DIR_PIN, direction, numXPulses, X_MOTOR_SPEED, pollingOn, &ptidx);
 	
 	//Move to destination Y COORD
 	int yMove = coordCurr.y - coordDest.y;
@@ -366,11 +442,14 @@ uint32_t Grid::moveXY(ShelfCoord coordCurr, ShelfCoord coordDest, bool pollingOn
 	if(yMove < 0){ direction = DOWN; }
 	
 	numUnits = abs(yMove);
-	numPulses = pulsesPerUnitY * numUnits;
-	motorUnit->move(Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, direction, numPulses, Y_MOTOR_SPEED, pollingOn, &ptidy);
+	numYPulses = pulsesPerUnitY * numUnits;
+	// if(numYPulses > 0)
+		// motorUnit->move(Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, direction, numYPulses, Y_MOTOR_SPEED, pollingOn, &ptidy);
 
-	pthread_join(ptidx, NULL);
-	pthread_join(ptidy, NULL);
+	// if(numXPulses > 0)
+	// 	pthread_join(ptidx, NULL);
+	// if(numYPulses > 0)
+	// 	pthread_join(ptidy, NULL);
 	std::cout << "Finished Executing Thread\n";
 	
 	currentCoord = coordDest;
@@ -417,6 +496,7 @@ uint32_t Grid::returnToShelf() {
 		// Check if barcode is valid or was entered
 		returnToShelfByBarcode (returnBarcodes[i]);
 	}
+	return SUCCESS;
 }
 
 uint32_t Grid::returnToShelf(const Medicine& medication) {
@@ -427,11 +507,11 @@ uint32_t Grid::returnToShelf(const Medicine& medication) {
 	
 	uint32_t returnValue = SUCCESS;
 
-	//check valid coord
+	// //check valid coord
 
-	/* --------------------- pickup from pickup location ------------------- */
-	//Move to pickup location
-	returnValue = moveXY(currentCoord, pickupLocation, false);
+	// /* --------------------- pickup from pickup location ------------------- */
+	// //Move to pickup location
+	// returnValue = moveXY(currentCoord, pickupLocation, false);
 
 	//Extend Z
 	returnValue = extendZ();

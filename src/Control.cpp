@@ -10,6 +10,9 @@
 #include "defines.hpp"
 #include <string.h>
 #include "Sensors.h"
+#include <ncurses.h>
+
+using namespace std;
 
 class Control
 {
@@ -47,14 +50,38 @@ uint32_t Control::calibrate(void)
 
 uint32_t Control::bcodeControl(void)
 {
-    uint32_t returnValue =  SUCCESS;
 
-    if (motorUnit.pinSetup() != 0)
-    {
-        printf("Error: motor setup returned non-zero\n");
-        return returnValue;
-    }
-    sensorPinSetup(motorUnit.h);
+    // usleep(4000000);
+    // string inputStr;
+    // initscr();
+    // flushinp();
+    // char input[10];
+    // timeout(5000);
+    // int retVal = getstr(input);
+    // endwin();
+
+    // inputStr = input;
+
+    // cout << "val:" << retVal << "\n";
+    // if(retVal == ERR) cout << "no input detected\n";
+    // else
+    // {
+    //     cout << input << "\n"; 
+    //     cout << inputStr << "\n";   
+    // }
+
+    // for (;;)
+    // {
+
+    // }
+    // uint32_t returnValue =  SUCCESS;
+
+    // if (motorUnit.pinSetup() != 0)
+    // {
+    //     printf("Error: motor setup returned non-zero\n");
+    //     return returnValue;
+    // }
+    // sensorPinSetup(motorUnit.h);    
 
     std::cout << "Initial Calibration\n";
     calibrate();
@@ -70,7 +97,7 @@ uint32_t Control::bcodeControl(void)
         {
             //Add item to the shelf
             std::cout << "Setting up the shelf\n";
-            grid.shelfSetup();
+            grid.shelfSetupByBarcode();
 
         }
         else if(bcodeCommand == "A-0020-Z")
@@ -228,6 +255,7 @@ uint32_t Control::control(void)
 
 int main()
 {    
+    cout << "Main function\n";
     Control controlUnit;
     controlUnit.bcodeControl();
     return 0;

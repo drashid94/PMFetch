@@ -20,7 +20,7 @@
 #define X_MOTOR_SPEED 750
 #define Z_MOTOR_SPEED 350	
 
-#define NUM_RETURN_LOCATIONS 3
+#define NUM_RETURN_LOCATIONS GRID_UNIT_MAX_COL
 #define FETCH_QUEUE_MAX_SIZE 36
 
 struct ShelfCoord
@@ -30,6 +30,8 @@ struct ShelfCoord
 };
 
 #define SUCCESS 0
+
+
 #define EXIT_POINT EXIT_LABEL:
 #define EXIT_FUNCTION(ret, err) ret = err; \
                                 goto EXIT_LABEL

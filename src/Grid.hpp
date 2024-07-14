@@ -14,6 +14,8 @@ struct GridUnit
 	bool occupied;
 };
 
+uint32_t getInputBarcode(std::string * barcode);
+
 class Grid {
 public:
 	//Grid(int xdimensions, int ydimensions, int pulsesPerUnit);
@@ -23,6 +25,7 @@ public:
 	uint32_t getPulsesPerUnitY() const;
 	uint32_t getLocation(const Medicine& medication) const;
 	uint32_t shelfSetup();
+	uint32_t shelfSetupByBarcode();
 	uint32_t deleteFromShelf(string barcode);
 	void printGrid();
 
@@ -46,9 +49,11 @@ public:
 private:
 
 	uint32_t addNewItemToGrid(GridUnit * gridUnit);
+	uint32_t addNewItemToGrid(string barcode);
 	uint32_t permanantlyRemoveFromGrid(Medicine * med);
 	uint32_t updateGrid(ShelfCoord shelfCoord, bool returning);
 	uint32_t getMedFromBarcode(string barcode, Medicine *med);
+	uint32_t getEmptyGridUnit(GridUnit * gridUnit);
 	//void *getBarcode(string & barcode);
 	//void *timeout();
 
@@ -59,7 +64,7 @@ public:
 	uint32_t pulsesPerExtendZ;
 	ShelfCoord currentCoord;
 	ShelfCoord pickupLocation;
-	ShelfCoord returnLocations[3];
+	ShelfCoord returnLocations[NUM_RETURN_LOCATIONS];
 
 	Motor* motorUnit;
 	const std::vector<Medicine>* medicineDatabase; // populated by calling getAllMedicines() from medicine database?
