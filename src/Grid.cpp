@@ -11,6 +11,22 @@
 #include "Grid.hpp"
 #include <string.h>
 #include <iostream>
+#include <ncurses.h>
+
+uint32_t getInputBarcode(std::string * barcode)
+{    
+
+    initscr();
+    refresh();
+    flushinp();
+    char input[100];
+    timeout(5000);
+    int retVal = getstr(input);
+    endwin();
+
+    *barcode = input;
+    return (retVal == ERR) ? 1 : SUCCESS;
+}
 
 Grid::Grid() 
 { }
@@ -21,10 +37,13 @@ Grid::Grid(Motor* motorUnitIn, MedicineDatabase* medicineDatabaseIn, int xdimens
 		//return out of bounds grid error
     }
     currentCoord = {0, 0};
-    pickupLocation = {3, 3}; // rightmost column of the bottom row
-	returnLocations[0] = {3, 0};
-	returnLocations[1] = {3, 1};
-	returnLocations[2] = {3, 2}; // 3 leftmost columns of the bottom row
+    // pickupLocation = {3, 3}; // rightmost column of the bottom row
+	returnLocations[0] = {0, GRID_UNIT_MAX_ROW};
+	returnLocations[1] = {1, GRID_UNIT_MAX_ROW};
+	returnLocations[2] = {2, GRID_UNIT_MAX_ROW}; 
+	returnLocations[3] = {3, GRID_UNIT_MAX_ROW};
+	returnLocations[4] = {4, GRID_UNIT_MAX_ROW};
+	returnLocations[5] = {5, GRID_UNIT_MAX_ROW}; // All bottom row
     // Calculate pulses per unit for each dimension
 	pulsesPerUnitX = 1200;
 	pulsesPerUnitY = 16000;
@@ -108,6 +127,7 @@ void Grid::printGrid()
 uint32_t Grid::updateGrid(ShelfCoord shelfCoord, bool returning)
 {
 	//check coord params valid
+	cout << "Updating Grid:\n " << shelfCoord.x << " " << shelfCoord.y << "\n";
 
 	gridContainers[shelfCoord.y][shelfCoord.x].med.onShelf = returning;
 	return SUCCESS;
@@ -136,17 +156,29 @@ uint32_t Grid::addNewItemToGrid(GridUnit * gridUnit)
 	return SUCCESS;
 }
 
-void Grid::isMedValid(Medicine * med, bool &valid)
+uint32_t Grid::isMedValid(string barcode)
 {
-	//TODO checks
-	//Check bcode doesnt already exist on shelf and validity of values	
-	(void)med;
-	valid = true;
+	uint32_t returnValue = SUCCESS;
+	for(uint32_t x = 0; x < gridContainers.size(); x++)
+	{
+		for (uint32_t y = 0; y < gridContainers[x].size(); y++)
+		{
+			if (gridContainers[x][y].occupied == true)
+			{
+				if(gridContainers[x][y].med.barcode == barcode)
+				{
+					return returnValue;
+				}
+			}
+		}
+	}
+	returnValue = 1;
+	return returnValue;
 }
 
 uint32_t Grid::returnToShelfByBarcode(string barcode, int returnLocationNum) // search grid by name and call returntoshelf
 {
-	uint32_t returnValue = 1;
+	uint32_t returnValue = SUCCESS;
 	for(uint32_t x = 0; x < gridContainers.size(); x++)
 	{
 		for (uint32_t y = 0; y < gridContainers[x].size(); y++)
@@ -162,6 +194,71 @@ uint32_t Grid::returnToShelfByBarcode(string barcode, int returnLocationNum) // 
 		}
 	}
 	printf("Medicine not on shelf");
+	return returnValue;
+}
+
+uint32_t Grid::fetchFromShelfByBarcode(string barcode)
+{
+	uint32_t returnValue = SUCCESS;
+	for(uint32_t x = 0; x < gridContainers.size(); x++)
+	{
+		for (uint32_t y = 0; y < gridContainers[x].size(); y++)
+		{
+			if (gridContainers[x][y].occupied && gridContainers[x][y].med.onShelf)
+			{
+				if(gridContainers[x][y].med.barcode == barcode)
+				{
+					std::cout << "Barcode recognized as " << gridContainers[x][y].med.medication_name;
+					returnValue = fetchFromShelf(gridContainers[x][y].med);
+				}				
+			}
+		}
+	}
+	return returnValue;
+}
+
+uint32_t Grid::getMedFromBarcode(string barcode, Medicine *med)
+{
+	uint32_t returnValue = SUCCESS;
+	for(uint32_t x = 0; x < gridContainers.size(); x++)
+	{
+		for (uint32_t y = 0; y < gridContainers[x].size(); y++)
+		{
+			if (gridContainers[x][y].occupied && gridContainers[x][y].med.onShelf)
+			{
+				if(gridContainers[x][y].med.barcode == barcode)
+				{
+					*med = gridContainers[x][y].med;
+					return SUCCESS;
+				}				
+			}
+		}
+	}
+	returnValue = 1;
+	return returnValue;
+}
+
+uint32_t Grid::deleteFromShelf(string barcode)
+{
+	Medicine med;
+	uint32_t returnValue = SUCCESS;
+	if(getMedFromBarcode(barcode, &med))
+	{
+		if(med.onShelf)
+		{
+			std::cout << "Cannot delete something on the shelf\nFetch first\n";
+			returnValue = 1;
+		}
+		else
+		{
+			gridContainers[med.coord.x][med.coord.y].occupied = false;
+		}
+	}
+	else
+	{
+		std::cout << "Could not find medicine\n";
+		returnValue = 1;
+	}
 	return returnValue;
 }
 
@@ -205,7 +302,6 @@ uint32_t Grid::shelfSetup() {
 		cin >> y;
 
 		Medicine med{name, bcode, {uint8_t(x & 0x7f),uint8_t(y & 0x7f)}, true /* onShelf */};
-		isMedValid(&med, valid);
 		GridUnit gridUnit{med, true};
 
 		if(valid) 
@@ -230,15 +326,76 @@ uint32_t Grid::shelfSetup() {
 	return SUCCESS;
 }
 
+uint32_t Grid::addNewItemToGrid(string barcode)
+{
+	for(uint32_t x = 0; x < gridContainers.size(); x++)
+	{
+		for (uint32_t y = 0; y < gridContainers[x].size(); y++)
+		{
+			if(!gridContainers[x][y].occupied)
+			{
+				cout << "ANITG " << x << " " << y << "\n";
+				Medicine med = {"", barcode, {(int)(y&INT32_MAX), (int)(x&INT32_MAX)}, 1};
+				gridContainers[x][y].med = med;
+				gridContainers[x][y].occupied = true;
+				cout << "ANITG " << gridContainers[x][y].med.coord.x << " " << gridContainers[x][y].med.coord.y << "\n";
+				cout << "Added medicine to gridContainers\n";
+				return SUCCESS;
+			}
+		}
+	}
+	return 1;
+}
+
+
+
+uint32_t Grid::shelfSetupByBarcode()
+{
+	for(int i = 0; i < NUM_RETURN_LOCATIONS; i++)
+	{
+		string barcode;
+		moveXY(currentCoord, returnLocations[i], false);
+		cout << "Calling get input func\n";
+		uint32_t retval = getInputBarcode(&barcode);
+		if(retval == SUCCESS)
+		{
+			std::cout << "Container detected\nLocate empty spot on shelf\n";
+			std::cout << "BARCODE: " << barcode << "\n";			
+			if(addNewItemToGrid(barcode) != SUCCESS)
+			{
+				std::cout << "Grid: Could not place medicine on Shelf during setup\n";
+				moveXY(currentCoord, {0,0}, false);
+				return 1;
+			}
+			printGrid();
+			Medicine med;
+			getMedFromBarcode(barcode, &med);
+			std::cout << med.coord.x << " " << med.coord.y << "\n";
+			returnToShelf(med);
+			std::cout << "New container moved to shelf\n";
+		}
+		else
+		{
+			std::cout << "Container not found\nMove to next returnLocation";
+		}
+		usleep(3000000);
+	}
+	return SUCCESS;
+}
+
 uint32_t Grid::extendZ()
 {
-	motorUnit->move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, EXTEND, pulsesPerExtendZ, Z_MOTOR_SPEED);
+	// pthread_t ptid;
+	// motorUnit->move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, EXTEND, pulsesPerExtendZ, Z_MOTOR_SPEED, &ptid);
+	// pthread_join(ptid, NULL);
 	return SUCCESS;
 }
 
 uint32_t Grid::retractZ()
 {
-	motorUnit->move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, RETRACT, pulsesPerExtendZ, Z_MOTOR_SPEED);
+	// pthread_t ptid;
+	// motorUnit->move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, RETRACT, pulsesPerExtendZ, Z_MOTOR_SPEED, &ptid);
+	// pthread_join(ptid, NULL);
 	return SUCCESS;
 }
 
@@ -247,43 +404,55 @@ uint32_t Grid::containerLiftOrPlace(bool lift)
 	uint8_t direction = 0;
 	uint32_t numPulses = 0;
 
-	printf("Lifting on Y\n");
+	std::cout << ((lift) ? "Lifting" : "Placing Down") << "On Y";
 	numPulses = pulsesPerLiftY;
 	direction = DOWN;
 	if(lift) direction = UP;
-	motorUnit->move(Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, direction, numPulses, Y_MOTOR_SPEED);
+	pthread_t ptid;
+	motorUnit->move(Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, direction, numPulses, Y_MOTOR_SPEED, &ptid);
+	pthread_join(ptid, NULL);
 	return SUCCESS;
 
 }
 
 //Takes current location and destination and moves there
-uint32_t Grid::moveXY(ShelfCoord coordCurr, ShelfCoord coordDest)
+uint32_t Grid::moveXY(ShelfCoord coordCurr, ShelfCoord coordDest, bool pollingOn)
 {
 	uint8_t direction = 0;
 	uint8_t numUnits = 0;
-	uint32_t numPulses = 0;
+	uint32_t numXPulses = 0;
+	uint32_t numYPulses = 0;
 
+	pthread_t ptidx;
+	pthread_t ptidy;
 	//Move to destination X COORD
 	int xMove = coordCurr.x - coordDest.x;
 	if(xMove > 0){ direction = LEFT; }
 	if(xMove < 0){ direction = RIGHT; }
 
 	numUnits = abs(xMove);
-	numPulses = pulsesPerUnitX * numUnits;
-	motorUnit->move(X_MOTOR_PIN, X_MOTOR_DIR_PIN, direction, numPulses, X_MOTOR_SPEED);
-
+	numXPulses = pulsesPerUnitX * numUnits;
+	// if(numXPulses > 0)
+		// motorUnit->move(X_MOTOR_PIN, X_MOTOR_DIR_PIN, direction, numXPulses, X_MOTOR_SPEED, pollingOn, &ptidx);
+	
 	//Move to destination Y COORD
 	int yMove = coordCurr.y - coordDest.y;
 	if(yMove > 0){ direction = UP; }
 	if(yMove < 0){ direction = DOWN; }
 	
 	numUnits = abs(yMove);
-	numPulses = pulsesPerUnitY * numUnits;
-	motorUnit->move(Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, direction, numPulses, Y_MOTOR_SPEED);
+	numYPulses = pulsesPerUnitY * numUnits;
+	// if(numYPulses > 0)
+		// motorUnit->move(Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, direction, numYPulses, Y_MOTOR_SPEED, pollingOn, &ptidy);
+
+	// if(numXPulses > 0)
+	// 	pthread_join(ptidx, NULL);
+	// if(numYPulses > 0)
+	// 	pthread_join(ptidy, NULL);
+	std::cout << "Finished Executing Thread\n";
 	
 	currentCoord = coordDest;
 	return SUCCESS;
-
 }
 
 struct threadArguments {
@@ -388,11 +557,11 @@ uint32_t Grid::returnToShelf(const Medicine& medication, int returnLocationNum) 
 	
 	uint32_t returnValue = SUCCESS;
 
-	//check valid coord
+	// //check valid coord
 
-	/* --------------------- pickup from return location ------------------- */
-	//Move to return location
-	returnValue = moveXY(currentCoord, returnLocations[returnLocationNum]);
+	// /* --------------------- pickup from pickup location ------------------- */
+	// //Move to pickup location
+	// returnValue = moveXY(currentCoord, pickupLocation, false);
 
 	//Extend Z
 	returnValue = extendZ();
@@ -404,7 +573,7 @@ uint32_t Grid::returnToShelf(const Medicine& medication, int returnLocationNum) 
 	returnValue = retractZ();
 
 	/* --------------------- move to medicine's location ------------------- */
-	returnValue = moveXY(currentCoord, medication.coord);
+	returnValue = moveXY(currentCoord, medication.coord, false);
 
 	//Extend Z
 	returnValue = extendZ();
@@ -428,7 +597,7 @@ uint32_t Grid::fetchFromShelf(const Medicine& medication) {
 	/* --------------------- pickup at medicine's location ------------------- */
 	uint32_t returnValue = SUCCESS;
 
-	returnValue = moveXY(currentCoord, medication.coord);
+	returnValue = moveXY(currentCoord, medication.coord, false);
 
 	//Extend Z
 	returnValue = extendZ();
@@ -441,9 +610,14 @@ uint32_t Grid::fetchFromShelf(const Medicine& medication) {
 
 	/* --------------------- dropoff at pickup location ------------------- */
 
-	//Move to pickup location
-	returnValue = moveXY(currentCoord, pickupLocation);
-
+	string barcode;
+	//Move to pickup locations
+	for(int i = 0; i < NUM_RETURN_LOCATIONS; i++)
+	{
+		returnValue = moveXY(currentCoord, returnLocations[i], false);
+		cin >> barcode;
+	}
+	
 	//Extend Z
 	returnValue = extendZ();
 
@@ -458,53 +632,3 @@ uint32_t Grid::fetchFromShelf(const Medicine& medication) {
 
 	return returnValue;
 }
-
-/*//         if(sel == 'x')
-//         {
-//             motorPin = X_MOTOR_PIN;
-//             motorDirPin = X_MOTOR_DIR_PIN;
-//         }
-//         else if (sel == 'y')
-//         {
-//             motorPin = Y_MOTOR_PIN;
-//             motorDirPin = Y_MOTOR_DIR_PIN;
-//         }
-//         else if(sel == 'z')
-//         {
-//             motorPin = Z_MOTOR_PIN;
-//         }
-//         else if(sel == 'l')
-//         {
-//             motorPin = Y_MOTOR_PIN;
-//             motorDirPin = Y_MOTOR_DIR_PIN;
-//             lift = 1;
-//         }
-//         else if(sel == 'r')
-//         {
-//             //Extend Z
-//             move(h, Z_MOTOR_PIN, Y_MOTOR_DIR_PIN, 0, 0);
-//             // Lift on Y
-//             move(h, Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, 1, 1);
-//             // Retract Z
-//             move(h, Z_MOTOR_PIN, Y_MOTOR_DIR_PIN, 0, 0);
-//             // Move Y Full Step
-//             move(h, Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, dir, 0);
-//             // Move along X 
-//             move(h, X_MOTOR_PIN, X_MOTOR_DIR_PIN, !dir, 0);
-//             move(h, X_MOTOR_PIN, X_MOTOR_DIR_PIN, !dir, 0);
-//             // Extend Z
-//             move(h, Z_MOTOR_PIN, Y_MOTOR_DIR_PIN, 0, 0);
-//             // Put down box
-//             move(h, Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, 0, 1);
-//             // Retract Z
-//             move(h, Z_MOTOR_PIN, Y_MOTOR_DIR_PIN, 0, 0);
-//         }
-//         else if(sel == 'u')
-//         {
-
-//         }
-//         if(sel != 'r' && sel != 'u')
-//         {
-//             // printf("motorPin: %d\nmotorDirPin: %d\n", motorPin, motorDirPin);
-//             move(h, motorPin, motorDirPin, dir, lift);
-//         }*/

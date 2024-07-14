@@ -10,6 +10,9 @@
 #include "defines.hpp"
 #include <string.h>
 #include "Sensors.h"
+#include <ncurses.h>
+
+using namespace std;
 
 class Control
 {
@@ -17,33 +20,159 @@ public:
     Control();
     uint32_t calibrate(void);
     uint32_t control(void);
+    uint32_t bcodeControl(void);
 private:
     Motor motorUnit;
     MedicineDatabase medData;
-    Grid grid{&motorUnit, &medData, GRID_DIM_X, GRID_DIM_Y, 5 /* X units */, 4 /* Y units */};    
+    vector<string> fetchQueue;
+    Grid grid{&motorUnit, &medData, GRID_DIM_X, GRID_DIM_Y, GRID_UNIT_MAX_COL /* X units */, GRID_UNIT_MAX_ROW /* Y units */};    
 
 };
 
 Control::Control()
 {
-
+    fetchQueue.resize(FETCH_QUEUE_MAX_SIZE);
 }
 
 uint32_t Control::calibrate(void)
 {
     uint32_t returnValue = SUCCESS;
-    //Calibrate X 
-    //Move left infinite with sensorPolling on
-    motorUnit.move(X_MOTOR_PIN, X_MOTOR_DIR_PIN, LEFT, UINT32_MAX, X_MOTOR_SPEED, true);
-
-    //Calibrate Y
-    motorUnit.move(Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, UP, UINT32_MAX, Y_MOTOR_SPEED, true);
+    
+    grid.moveXY({GRID_UNIT_MAX_COL-1,GRID_UNIT_MAX_ROW-1}, {0,0}, true /* polling on */);
 
     //Calibrate Z
-    motorUnit.move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, RETRACT, UINT32_MAX, Z_MOTOR_SPEED, true);
+    grid.retractZ();
 
     grid.currentCoord = {0,0};
     return returnValue;
+
+}
+
+uint32_t Control::bcodeControl(void)
+{
+
+    // usleep(4000000);
+    // string inputStr;
+    // initscr();
+    // flushinp();
+    // char input[10];
+    // timeout(5000);
+    // int retVal = getstr(input);
+    // endwin();
+
+    // inputStr = input;
+
+    // cout << "val:" << retVal << "\n";
+    // if(retVal == ERR) cout << "no input detected\n";
+    // else
+    // {
+    //     cout << input << "\n"; 
+    //     cout << inputStr << "\n";   
+    // }
+
+    // for (;;)
+    // {
+
+    // }
+    // uint32_t returnValue =  SUCCESS;
+
+    // if (motorUnit.pinSetup() != 0)
+    // {
+    //     printf("Error: motor setup returned non-zero\n");
+    //     return returnValue;
+    // }
+    // sensorPinSetup(motorUnit.h);    
+
+    std::cout << "Initial Calibration\n";
+    calibrate();
+
+    std::cout << "Calibration complete!\nPlease scan bardcodes to begin\n";
+
+    std::string bcodeCommand;
+    
+    for(;;)
+    {
+        std::cin >> bcodeCommand;
+        if(bcodeCommand == "A-0010-Z")
+        {
+            //Add item to the shelf
+            std::cout << "Setting up the shelf\n";
+            grid.shelfSetupByBarcode();
+
+        }
+        else if(bcodeCommand == "A-0020-Z")
+        {
+            std::cout << "Deleting next scanned medication\n";
+
+
+        }
+        /* Single Fetch */
+        else if(bcodeCommand == "A-0030-Z")
+        {
+            string bcode;
+            std::cout << "Fetching next scanned barcode";
+            cin >> bcode;
+            grid.fetchFromShelfByBarcode(bcode);
+        }
+        /* Multi Fetch */
+        else if(bcodeCommand == "A-0040-Z")
+        {
+            string bcode;
+            std::cout << "Fetching multiple barcodes\n";
+            int fetchQueueSize = 0;           
+            for(int i = 0; i < FETCH_QUEUE_MAX_SIZE; i++)
+            {                
+                std::cin >> bcode;
+                if(grid.isMedValid(bcode) == SUCCESS)
+                {
+                    fetchQueue[i] = bcode;
+                    fetchQueueSize++;
+                }
+                else if(bcode == "A-0040-Z") break;
+                else
+                {
+                    std::cout << "Unrecognized barcode entered: " << bcode << "\n";
+                }                                
+            }
+
+            std::cout << "Fetch queue has been created\nStarting fetches\n";
+            for(int i = 0; i < fetchQueueSize; i++)
+            {
+                grid.fetchFromShelfByBarcode(fetchQueue[i]);
+            }
+
+        }
+        else if(bcodeCommand == "A-0050-Z") // Calibrate
+        {
+            calibrate();   
+        }
+        else if(bcodeCommand == "A-0060-Z") // printGrid
+        {
+            grid.printGrid();
+        }
+        else if(bcodeCommand == "A-0070-Z")
+        {
+            
+        }
+        else if(bcodeCommand == "A-0080-Z")
+        {
+            
+        }
+        else if(bcodeCommand == "A-0090-Z")
+        {
+            
+        }
+        else if(bcodeCommand == "A-0100-Z")
+        {
+            
+        }
+        else if(grid.isMedValid(bcodeCommand) == SUCCESS)
+        {
+            grid.fetchFromShelfByBarcode(bcodeCommand);
+        }
+    }
+
+
 
 }
 
@@ -119,14 +248,15 @@ uint32_t Control::control(void)
                 printf("Error");
             }*/
         }
-        grid.moveXY(grid.currentCoord, {0,0});
+        grid.moveXY(grid.currentCoord, {0,0}, true);
 
     }
 }
 
 int main()
 {    
+    cout << "Main function\n";
     Control controlUnit;
-    controlUnit.control();
+    controlUnit.bcodeControl();
     return 0;
 }

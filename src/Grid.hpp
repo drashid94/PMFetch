@@ -16,6 +16,8 @@ struct GridUnit
 	bool occupied;
 };
 
+uint32_t getInputBarcode(std::string * barcode);
+
 class Grid {
 public:
 	//Grid(int xdimensions, int ydimensions, int pulsesPerUnit);
@@ -25,18 +27,26 @@ public:
 	uint32_t getPulsesPerUnitY() const;
 	uint32_t getLocation(const Medicine& medication) const;
 	uint32_t shelfSetup();
+	uint32_t shelfSetupByBarcode();
+	uint32_t deleteFromShelf(string barcode);
 	void printGrid();
 
 	bool IsSlotEmpty(ShelfCoord c); // include some error check to ensure x and y are within bounds
-	void isMedValid(Medicine * medication, bool &valid);
+	uint32_t isMedValid(string barcode);
 
 
 	//Movement
 	uint32_t extendZ();
 	uint32_t retractZ();
 	uint32_t containerLiftOrPlace(bool lift);
+<<<<<<< HEAD
 	uint32_t moveXY(ShelfCoord coordCurr, ShelfCoord coordDest);
 	uint32_t returnToShelfByBarcode (string barcode, int returnLocationNum); // search grid by name and call returntoshelf
+=======
+	uint32_t moveXY(ShelfCoord coordCurr, ShelfCoord coordDest, bool pollingOn);
+	uint32_t returnToShelfByBarcode (string barcode); // search grid by name and call returntoshelf
+	uint32_t fetchFromShelfByBarcode (string barcode); // search grid by name and call fetchFromShelf
+>>>>>>> origin/motorThreads+Accel
 	uint32_t fetchFromShelfByName (string medicationName); // search grid by name and call fetchfromshelf
 	uint32_t returnToShelf(const Medicine& medication, int returnLocationNum); // calls move from motor unit
 	uint32_t fetchFromShelf(const Medicine& medication); // calls move from motor unit
@@ -47,8 +57,11 @@ public:
 private:
 
 	uint32_t addNewItemToGrid(GridUnit * gridUnit);
+	uint32_t addNewItemToGrid(string barcode);
 	uint32_t permanantlyRemoveFromGrid(Medicine * med);
 	uint32_t updateGrid(ShelfCoord shelfCoord, bool returning);
+	uint32_t getMedFromBarcode(string barcode, Medicine *med);
+	uint32_t getEmptyGridUnit(GridUnit * gridUnit);
 	//void *getBarcode(string & barcode);
 	//void *timeout();
 
