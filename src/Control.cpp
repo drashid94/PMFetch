@@ -51,21 +51,21 @@ uint32_t Control::control(void)
 {
     uint32_t returnValue = SUCCESS;
 
-    if (motorUnit.pinSetup() != 0)
+    /*if (motorUnit.pinSetup() != 0)
     {
         printf("Error: motor setup returned non-zero\n");
         return returnValue;
-    }
+    }*/
     sensorPinSetup(motorUnit.h);
 
     bool sensVal = false;
     grid.extendZ();
-    for(;;)
+    /*for(;;)
     {
         get_y_sensor_value(sensVal);
-        cout << sensVal << "\n";
+        cout << "test" << "\n";
         usleep(100000);
-    }
+    }*/
     calibrate();
 
     //Test grid functions
@@ -109,7 +109,7 @@ uint32_t Control::control(void)
             if (grid.returnToShelf() == 1)
             {
                 printf("Error");
-            };
+            }
             /*
             printf("Scan barcode - ");
             cin >> medicationBarcode;

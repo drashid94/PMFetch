@@ -144,7 +144,7 @@ void Grid::isMedValid(Medicine * med, bool &valid)
 	valid = true;
 }
 
-uint32_t Grid::returnToShelfByBarcode (string barcode) // search grid by name and call returntoshelf
+uint32_t Grid::returnToShelfByBarcode(string barcode, int returnLocationNum) // search grid by name and call returntoshelf
 {
 	uint32_t returnValue = 1;
 	for(uint32_t x = 0; x < gridContainers.size(); x++)
@@ -155,14 +155,13 @@ uint32_t Grid::returnToShelfByBarcode (string barcode) // search grid by name an
 			{
 				if(gridContainers[x][y].med.barcode == barcode)
 				{
-					printf("PLace item in drop off, then click enter -");
-					cin.ignore();
-					cin.ignore();
-					returnValue = returnToShelf(gridContainers[x][y].med);
+					returnValue = returnToShelf(gridContainers[x][y].med, returnLocationNum);
+					return returnValue;
 				}
 			}
 		}
 	}
+	printf("Medicine not on shelf");
 	return returnValue;
 }
 
@@ -294,42 +293,94 @@ struct threadArguments {
 
 void * getBarcode(void * barcode)
 {
+	printf("Get barcode thread\n");
 	threadArguments* barcodes = (threadArguments*) barcode;
-
+	printf("Receive barcode...\n");
 	cin >> *barcodes->valuePtr;
+	printf("Barcode received \n");
 	return NULL;
 }
 
-uint32_t Grid::returnToShelf() {
-	string returnBarcodes[NUM_RETURN_LOCATIONS];
+uint32_t Grid::getBarcode(string & barcode)
+{
+	printf("Scanning for barcode...\n");
+	fd_set readfds;
+    struct timeval tv;
 
-	// Move to all pick up locations and scan barcodes
-	for (int i = 0; i< NUM_RETURN_LOCATIONS; i++)
-	{
-		if(moveXY(currentCoord, returnLocations[i]) != 0)
-		{
-			return 1;
-		}
+    // Clear the file descriptor set
+    FD_ZERO(&readfds);
 
-		// Two threads to read barcode and timeout
-		pthread_t readBarcode_thread;
+    // Add stdin to the set
+    FD_SET(STDIN_FILENO, &readfds);
 
-		if (pthread_create(&readBarcode_thread, NULL, getBarcode, NULL) != 0) {
-			return 1;
-		}
+    // Set the timeout
+    tv.tv_sec = 1; // 1 second timeout
+    tv.tv_usec = 0;
 
-		usleep(1*1000000); // 1 second wait
-		pthread_cancel(readBarcode_thread);
-	}
+    int result = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &tv);
 
-	for (int i = 0; i< NUM_RETURN_LOCATIONS; i++)
-	{
-		// Check if barcode is valid or was entered
-		returnToShelfByBarcode (returnBarcodes[i]);
-	}
+    if (result == -1) {
+        // Error handling
+        //cerr << "Error in select()" << endl;
+        return 1;
+    } else if (result == 0) {
+        // Timeout
+        return 1;
+    } else {
+        // Input available
+        cin >> barcode;
+		printf("Barcode scanned\n");
+        return 0;
+    }
 }
 
-uint32_t Grid::returnToShelf(const Medicine& medication) {
+uint32_t Grid::returnToShelf() {
+	printf("Return sequence started\n");
+	uint32_t returnValue = SUCCESS;
+	string returnBarcodes[NUM_RETURN_LOCATIONS];
+	int count = 0;
+
+	// Move to all pick up locations and scan barcodes
+	for (int i = 0; i < NUM_RETURN_LOCATIONS; i++)
+	{
+		returnValue = moveXY(currentCoord, returnLocations[i]);
+
+		/*// Two threads to read barcode and timeout
+		pthread_t readBarcode_thread, timeout_thread;
+
+		if (pthread_create(&readBarcode_thread, NULL, (void*)getBarcode(returnBarcodes[i]), NULL) != 0) {
+			return 1;
+		}
+
+		usleep(5*1000000); // 5 second wait
+		pthread_cancel(readBarcode_thread);*/
+
+		if(getBarcode(returnBarcodes[i]) != 0)
+		{
+			printf("No barcode read\n");
+		}
+		else
+		{
+			count++;
+		}
+
+	}
+
+	printf("Returning %d items\n", count);
+
+	for (int i = 0; i < NUM_RETURN_LOCATIONS; i++)
+	{
+		// Check if barcode is valid or was entered
+		if (!returnBarcodes[i].empty())
+		{
+			returnToShelfByBarcode(returnBarcodes[i], i);
+		}
+	}
+
+	return returnValue;
+}
+
+uint32_t Grid::returnToShelf(const Medicine& medication, int returnLocationNum) {
 	// check if it exists in gridContainers
 	// call move sequence for picking up drop off container and placing in new position
 	// update gridContainer
@@ -339,9 +390,9 @@ uint32_t Grid::returnToShelf(const Medicine& medication) {
 
 	//check valid coord
 
-	/* --------------------- pickup from pickup location ------------------- */
-	//Move to pickup location
-	returnValue = moveXY(currentCoord, pickupLocation);
+	/* --------------------- pickup from return location ------------------- */
+	//Move to return location
+	returnValue = moveXY(currentCoord, returnLocations[returnLocationNum]);
 
 	//Extend Z
 	returnValue = extendZ();

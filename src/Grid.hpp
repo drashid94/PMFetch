@@ -7,6 +7,8 @@
 #include <pthread.h>
 #include <vector>
 #include <unistd.h>
+#include <sys/time.h>
+#include <sys/types.h>
 
 struct GridUnit
 {
@@ -34,11 +36,12 @@ public:
 	uint32_t retractZ();
 	uint32_t containerLiftOrPlace(bool lift);
 	uint32_t moveXY(ShelfCoord coordCurr, ShelfCoord coordDest);
-	uint32_t returnToShelfByBarcode (string barcode); // search grid by name and call returntoshelf
+	uint32_t returnToShelfByBarcode (string barcode, int returnLocationNum); // search grid by name and call returntoshelf
 	uint32_t fetchFromShelfByName (string medicationName); // search grid by name and call fetchfromshelf
-	uint32_t returnToShelf(const Medicine& medication); // calls move from motor unit
+	uint32_t returnToShelf(const Medicine& medication, int returnLocationNum); // calls move from motor unit
 	uint32_t fetchFromShelf(const Medicine& medication); // calls move from motor unit
 	uint32_t returnToShelf();
+	uint32_t getBarcode(string& barcode);
 
 
 private:
@@ -56,7 +59,7 @@ public:
 	uint32_t pulsesPerExtendZ;
 	ShelfCoord currentCoord;
 	ShelfCoord pickupLocation;
-	ShelfCoord returnLocations[3];
+	ShelfCoord returnLocations[NUM_RETURN_LOCATIONS];
 
 	Motor* motorUnit;
 	const std::vector<Medicine>* medicineDatabase; // populated by calling getAllMedicines() from medicine database?
