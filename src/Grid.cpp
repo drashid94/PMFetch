@@ -22,9 +22,12 @@ Grid::Grid(Motor* motorUnitIn, MedicineDatabase* medicineDatabaseIn, int xdimens
     }
     currentCoord = {0, 0};
     pickupLocation = {3, 3}; // rightmost column of the bottom row
-	returnLocations[0] = {3, 0};
-	returnLocations[1] = {3, 1};
-	returnLocations[2] = {3, 2}; // 3 leftmost columns of the bottom row
+	returnLocations[0] = {0, GRID_UNIT_MAX_ROW};
+	returnLocations[1] = {1, GRID_UNIT_MAX_ROW};
+	returnLocations[2] = {2, GRID_UNIT_MAX_ROW}; 
+	returnLocations[3] = {3, GRID_UNIT_MAX_ROW};
+	returnLocations[4] = {4, GRID_UNIT_MAX_ROW};
+	returnLocations[5] = {5, GRID_UNIT_MAX_ROW}; // All bottom row
     // Calculate pulses per unit for each dimension
 	pulsesPerUnitX = 1200;
 	pulsesPerUnitY = 16000;
@@ -136,7 +139,7 @@ uint32_t Grid::addNewItemToGrid(GridUnit * gridUnit)
 	return SUCCESS;
 }
 
-void Grid::isMedValid(string barcode)
+uint32_t Grid::isMedValid(string barcode)
 {
 	uint32_t returnValue = SUCCESS;
 	for(uint32_t x = 0; x < gridContainers.size(); x++)
@@ -209,7 +212,7 @@ uint32_t Grid::getMedFromBarcode(string barcode, Medicine *med)
 			{
 				if(gridContainers[x][y].med.barcode == barcode)
 				{
-					med = &gridContainers[x][y].med;
+					*med = gridContainers[x][y].med;
 					return SUCCESS;
 				}				
 			}
@@ -237,8 +240,8 @@ uint32_t Grid::deleteFromShelf(string barcode)
 	}
 	else
 	{
-		std::cout << "Could not find medicine\n"
-		reutrnValue = 1;
+		std::cout << "Could not find medicine\n";
+		returnValue = 1;
 	}
 	return returnValue;
 }
@@ -283,7 +286,6 @@ uint32_t Grid::shelfSetup() {
 		cin >> y;
 
 		Medicine med{name, bcode, {uint8_t(x & 0x7f),uint8_t(y & 0x7f)}, true /* onShelf */};
-		isMedValid(&med, valid);
 		GridUnit gridUnit{med, true};
 
 		if(valid) 
@@ -310,13 +312,17 @@ uint32_t Grid::shelfSetup() {
 
 uint32_t Grid::extendZ()
 {
-	motorUnit->move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, EXTEND, pulsesPerExtendZ, Z_MOTOR_SPEED);
+	pthread_t ptid;
+	motorUnit->move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, EXTEND, pulsesPerExtendZ, Z_MOTOR_SPEED, &ptid);
+	pthread_join(ptid, NULL);
 	return SUCCESS;
 }
 
 uint32_t Grid::retractZ()
 {
-	motorUnit->move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, RETRACT, pulsesPerExtendZ, Z_MOTOR_SPEED);
+	pthread_t ptid;
+	motorUnit->move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, RETRACT, pulsesPerExtendZ, Z_MOTOR_SPEED, &ptid);
+	pthread_join(ptid, NULL);
 	return SUCCESS;
 }
 
@@ -329,13 +335,15 @@ uint32_t Grid::containerLiftOrPlace(bool lift)
 	numPulses = pulsesPerLiftY;
 	direction = DOWN;
 	if(lift) direction = UP;
-	motorUnit->move(Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, direction, numPulses, Y_MOTOR_SPEED);
+	pthread_t ptid;
+	motorUnit->move(Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, direction, numPulses, Y_MOTOR_SPEED, &ptid);
+	pthread_join(ptid, NULL);
 	return SUCCESS;
 
 }
 
 //Takes current location and destination and moves there
-uint32_t Grid::moveXY(ShelfCoord coordCurr, ShelfCoord coordDest)
+uint32_t Grid::moveXY(ShelfCoord coordCurr, ShelfCoord coordDest, bool pollingOn)
 {
 	uint8_t direction = 0;
 	uint8_t numUnits = 0;
@@ -350,7 +358,7 @@ uint32_t Grid::moveXY(ShelfCoord coordCurr, ShelfCoord coordDest)
 
 	numUnits = abs(xMove);
 	numPulses = pulsesPerUnitX * numUnits;
-	motorUnit->move(X_MOTOR_PIN, X_MOTOR_DIR_PIN, direction, numPulses, X_MOTOR_SPEED, &ptidx);
+	motorUnit->move(X_MOTOR_PIN, X_MOTOR_DIR_PIN, direction, numPulses, X_MOTOR_SPEED, pollingOn, &ptidx);
 	
 	//Move to destination Y COORD
 	int yMove = coordCurr.y - coordDest.y;
@@ -359,7 +367,7 @@ uint32_t Grid::moveXY(ShelfCoord coordCurr, ShelfCoord coordDest)
 	
 	numUnits = abs(yMove);
 	numPulses = pulsesPerUnitY * numUnits;
-	motorUnit->move(Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, direction, numPulses, Y_MOTOR_SPEED, &ptidy);
+	motorUnit->move(Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, direction, numPulses, Y_MOTOR_SPEED, pollingOn, &ptidy);
 
 	pthread_join(ptidx, NULL);
 	pthread_join(ptidy, NULL);
@@ -388,7 +396,7 @@ uint32_t Grid::returnToShelf() {
 	// Move to all pick up locations and scan barcodes
 	for (int i = 0; i< NUM_RETURN_LOCATIONS; i++)
 	{
-		if(moveXY(currentCoord, returnLocations[i]) != 0)
+		if(moveXY(currentCoord, returnLocations[i], false) != 0)
 		{
 			return 1;
 		}
@@ -423,7 +431,7 @@ uint32_t Grid::returnToShelf(const Medicine& medication) {
 
 	/* --------------------- pickup from pickup location ------------------- */
 	//Move to pickup location
-	returnValue = moveXY(currentCoord, pickupLocation);
+	returnValue = moveXY(currentCoord, pickupLocation, false);
 
 	//Extend Z
 	returnValue = extendZ();
@@ -435,7 +443,7 @@ uint32_t Grid::returnToShelf(const Medicine& medication) {
 	returnValue = retractZ();
 
 	/* --------------------- move to medicine's location ------------------- */
-	returnValue = moveXY(currentCoord, medication.coord);
+	returnValue = moveXY(currentCoord, medication.coord, false);
 
 	//Extend Z
 	returnValue = extendZ();
@@ -459,7 +467,7 @@ uint32_t Grid::fetchFromShelf(const Medicine& medication) {
 	/* --------------------- pickup at medicine's location ------------------- */
 	uint32_t returnValue = SUCCESS;
 
-	returnValue = moveXY(currentCoord, medication.coord);
+	returnValue = moveXY(currentCoord, medication.coord, false);
 
 	//Extend Z
 	returnValue = extendZ();
@@ -476,7 +484,7 @@ uint32_t Grid::fetchFromShelf(const Medicine& medication) {
 	//Move to pickup locations
 	for(int i = 0; i < NUM_RETURN_LOCATIONS; i++)
 	{
-		returnValue = moveXY(currentCoord, returnLocations[i]);
+		returnValue = moveXY(currentCoord, returnLocations[i], false);
 		cin >> barcode;
 	}
 	
@@ -494,53 +502,3 @@ uint32_t Grid::fetchFromShelf(const Medicine& medication) {
 
 	return returnValue;
 }
-
-/*//         if(sel == 'x')
-//         {
-//             motorPin = X_MOTOR_PIN;
-//             motorDirPin = X_MOTOR_DIR_PIN;
-//         }
-//         else if (sel == 'y')
-//         {
-//             motorPin = Y_MOTOR_PIN;
-//             motorDirPin = Y_MOTOR_DIR_PIN;
-//         }
-//         else if(sel == 'z')
-//         {
-//             motorPin = Z_MOTOR_PIN;
-//         }
-//         else if(sel == 'l')
-//         {
-//             motorPin = Y_MOTOR_PIN;
-//             motorDirPin = Y_MOTOR_DIR_PIN;
-//             lift = 1;
-//         }
-//         else if(sel == 'r')
-//         {
-//             //Extend Z
-//             move(h, Z_MOTOR_PIN, Y_MOTOR_DIR_PIN, 0, 0);
-//             // Lift on Y
-//             move(h, Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, 1, 1);
-//             // Retract Z
-//             move(h, Z_MOTOR_PIN, Y_MOTOR_DIR_PIN, 0, 0);
-//             // Move Y Full Step
-//             move(h, Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, dir, 0);
-//             // Move along X 
-//             move(h, X_MOTOR_PIN, X_MOTOR_DIR_PIN, !dir, 0);
-//             move(h, X_MOTOR_PIN, X_MOTOR_DIR_PIN, !dir, 0);
-//             // Extend Z
-//             move(h, Z_MOTOR_PIN, Y_MOTOR_DIR_PIN, 0, 0);
-//             // Put down box
-//             move(h, Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, 0, 1);
-//             // Retract Z
-//             move(h, Z_MOTOR_PIN, Y_MOTOR_DIR_PIN, 0, 0);
-//         }
-//         else if(sel == 'u')
-//         {
-
-//         }
-//         if(sel != 'r' && sel != 'u')
-//         {
-//             // printf("motorPin: %d\nmotorDirPin: %d\n", motorPin, motorDirPin);
-//             move(h, motorPin, motorDirPin, dir, lift);
-//         }*/

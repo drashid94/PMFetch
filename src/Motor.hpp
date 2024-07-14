@@ -26,9 +26,9 @@ class Motor
         Motor();
         // Function to move a motor
         uint32_t move(uint32_t motorPin, uint32_t motorDirPin, uint32_t direction, uint32_t pulses, uint32_t motorSpeed, bool pollSensor, pthread_t *ptid);
-        uint32_t move(uint32_t motorPin, uint32_t motorDirPin, uint32_t direction, uint32_t pulses, uint32_t motorSpeed)
+        uint32_t move(uint32_t motorPin, uint32_t motorDirPin, uint32_t direction, uint32_t pulses, uint32_t motorSpeed, pthread_t *ptid)
         {
-            uint32_t returnValue = move(motorPin, motorDirPin, direction, pulses, motorSpeed, false);
+            uint32_t returnValue = move(motorPin, motorDirPin, direction, pulses, motorSpeed, false, ptid);
             return returnValue;
         }
         //void move(uint32_t handle, uint32_t motorPin, uint32_t motorDirPin, uint32_t direction, uint32_t lift);

@@ -22,7 +22,7 @@ private:
     Motor motorUnit;
     MedicineDatabase medData;
     vector<string> fetchQueue;
-    Grid grid{&motorUnit, &medData, GRID_DIM_X, GRID_DIM_Y, 5 /* X units */, 4 /* Y units */};    
+    Grid grid{&motorUnit, &medData, GRID_DIM_X, GRID_DIM_Y, GRID_UNIT_MAX_COL /* X units */, GRID_UNIT_MAX_ROW /* Y units */};    
 
 };
 
@@ -34,15 +34,11 @@ Control::Control()
 uint32_t Control::calibrate(void)
 {
     uint32_t returnValue = SUCCESS;
-    //Calibrate X 
-    //Move left infinite with sensorPolling on
-    motorUnit.move(X_MOTOR_PIN, X_MOTOR_DIR_PIN, LEFT, UINT32_MAX, X_MOTOR_SPEED, true);
-
-    //Calibrate Y
-    motorUnit.move(Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, UP, UINT32_MAX, Y_MOTOR_SPEED, true);
+    
+    grid.moveXY({GRID_UNIT_MAX_COL-1,GRID_UNIT_MAX_ROW-1}, {0,0}, true /* polling on */);
 
     //Calibrate Z
-    motorUnit.move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, RETRACT, UINT32_MAX, Z_MOTOR_SPEED, true);
+    grid.retractZ();
 
     grid.currentCoord = {0,0};
     return returnValue;
@@ -53,11 +49,12 @@ uint32_t Control::bcodeControl(void)
 {
     uint32_t returnValue =  SUCCESS;
 
-    if (motorUnit.pinSetup() != 0 || sensorPinSetup != 0)
+    if (motorUnit.pinSetup() != 0)
     {
         printf("Error: motor setup returned non-zero\n");
         return returnValue;
     }
+    sensorPinSetup(motorUnit.h);
 
     std::cout << "Initial Calibration\n";
     calibrate();
@@ -86,7 +83,7 @@ uint32_t Control::bcodeControl(void)
         else if(bcodeCommand == "A-0030-Z")
         {
             string bcode;
-            std::cout << "Fetching next scanned barcode"
+            std::cout << "Fetching next scanned barcode";
             cin >> bcode;
             grid.fetchFromShelfByBarcode(bcode);
         }
@@ -97,8 +94,7 @@ uint32_t Control::bcodeControl(void)
             std::cout << "Fetching multiple barcodes\n";
             int fetchQueueSize = 0;           
             for(int i = 0; i < FETCH_QUEUE_MAX_SIZE; i++)
-            {
-                bool valid;
+            {                
                 std::cin >> bcode;
                 if(grid.isMedValid(bcode) == SUCCESS)
                 {
@@ -143,9 +139,9 @@ uint32_t Control::bcodeControl(void)
         {
             
         }
-        else if(isMedValid(bcodeCommand) == SUCCESS)
+        else if(grid.isMedValid(bcodeCommand) == SUCCESS)
         {
-            grid.fetchFromShelfByBarcode(bcode);
+            grid.fetchFromShelfByBarcode(bcodeCommand);
         }
     }
 
@@ -157,11 +153,12 @@ uint32_t Control::control(void)
 {
     uint32_t returnValue = SUCCESS;
 
-    if (motorUnit.pinSetup() != 0 || sensorPinSetup != 0)
+    if (motorUnit.pinSetup() != 0)
     {
         printf("Error: motor setup returned non-zero\n");
         return returnValue;
     }
+    sensorPinSetup(motorUnit.h);
 
     bool sensVal = false;
     grid.extendZ();
@@ -224,7 +221,7 @@ uint32_t Control::control(void)
                 printf("Error");
             }*/
         }
-        grid.moveXY(grid.currentCoord, {0,0});
+        grid.moveXY(grid.currentCoord, {0,0}, true);
 
     }
 }

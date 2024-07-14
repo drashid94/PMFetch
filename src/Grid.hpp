@@ -27,14 +27,14 @@ public:
 	void printGrid();
 
 	bool IsSlotEmpty(ShelfCoord c); // include some error check to ensure x and y are within bounds
-	void isMedValid(string barcode);
+	uint32_t isMedValid(string barcode);
 
 
 	//Movement
 	uint32_t extendZ();
 	uint32_t retractZ();
 	uint32_t containerLiftOrPlace(bool lift);
-	uint32_t moveXY(ShelfCoord coordCurr, ShelfCoord coordDest);
+	uint32_t moveXY(ShelfCoord coordCurr, ShelfCoord coordDest, bool pollingOn);
 	uint32_t returnToShelfByBarcode (string barcode); // search grid by name and call returntoshelf
 	uint32_t fetchFromShelfByBarcode (string barcode); // search grid by name and call fetchFromShelf
 	uint32_t fetchFromShelfByName (string medicationName); // search grid by name and call fetchfromshelf
@@ -48,7 +48,7 @@ private:
 	uint32_t addNewItemToGrid(GridUnit * gridUnit);
 	uint32_t permanantlyRemoveFromGrid(Medicine * med);
 	uint32_t updateGrid(ShelfCoord shelfCoord, bool returning);
-	uint32_t getMedFromBarcode(string barcode);
+	uint32_t getMedFromBarcode(string barcode, Medicine *med);
 	//void *getBarcode(string & barcode);
 	//void *timeout();
 
