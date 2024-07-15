@@ -41,7 +41,7 @@ uint32_t Control::calibrate(void)
     grid.moveXY({GRID_UNIT_MAX_COL-1,GRID_UNIT_MAX_ROW-1}, {0,0}, true /* polling on */);
 
     //Calibrate Z
-    grid.retractZ();
+    // grid.retractZ();
 
     grid.currentCoord = {0,0};
     return returnValue;
@@ -50,38 +50,28 @@ uint32_t Control::calibrate(void)
 
 uint32_t Control::bcodeControl(void)
 {
+    uint32_t returnValue;
 
-    // usleep(4000000);
-    // string inputStr;
-    // initscr();
-    // flushinp();
-    // char input[10];
-    // timeout(5000);
-    // int retVal = getstr(input);
-    // endwin();
+    if (motorUnit.pinSetup() != 0)
+    {
+        printf("Error: motor setup returned non-zero\n");
+        return returnValue;
+    }
+    sensorPinSetup(motorUnit.h);    
 
-    // inputStr = input;
+    /* Testing Code */
+     // grid.moveXY({0,0}, {2,1}, false);
+     // for(;;)
+     // {
+     //    int asdf;
+     //    grid.moveXY({1,1}, {1,0}, false);
+     //    cin >> asdf;
+     //    grid.moveXY({1,0}, {1,1}, false);
+     //    cin >> asdf;
+     // }
+    // for(;;);
 
-    // cout << "val:" << retVal << "\n";
-    // if(retVal == ERR) cout << "no input detected\n";
-    // else
-    // {
-    //     cout << input << "\n"; 
-    //     cout << inputStr << "\n";   
-    // }
-
-    // for (;;)
-    // {
-
-    // }
-    // uint32_t returnValue =  SUCCESS;
-
-    // if (motorUnit.pinSetup() != 0)
-    // {
-    //     printf("Error: motor setup returned non-zero\n");
-    //     return returnValue;
-    // }
-    // sensorPinSetup(motorUnit.h);    
+    /* --------------------------------------------------    */
 
     std::cout << "Initial Calibration\n";
     calibrate();

@@ -263,25 +263,6 @@ uint32_t Grid::deleteFromShelf(string barcode)
 	return returnValue;
 }
 
-uint32_t Grid::fetchFromShelfByName (string medicationName) // search grid by name and call fetchfromshelf
-{
-	for(uint32_t x = 0; x < gridContainers.size(); x++)
-	{
-		for (uint32_t y = 0; y < gridContainers[x].size(); y++)
-		{
-			if (gridContainers[x][y].occupied == true)
-			{
-				if(gridContainers[x][y].med.medication_name == medicationName)
-				{
-					fetchFromShelf(gridContainers[x][y].med);
-					return SUCCESS;
-				}
-			}
-		}
-	}
-	return 1;
-}
-
 //take in bunch of inputs to create Medicine objects and set their location on shelf
 //Do this during setup when things are already on shelf
 uint32_t Grid::shelfSetup() {
@@ -386,17 +367,17 @@ uint32_t Grid::shelfSetupByBarcode()
 
 uint32_t Grid::extendZ()
 {
-	// pthread_t ptid;
-	// motorUnit->move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, EXTEND, pulsesPerExtendZ, Z_MOTOR_SPEED, &ptid);
-	// pthread_join(ptid, NULL);
+	pthread_t ptid;
+	motorUnit->move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, EXTEND, pulsesPerExtendZ, Z_MOTOR_SPEED, &ptid);
+	pthread_join(ptid, NULL);
 	return SUCCESS;
 }
 
 uint32_t Grid::retractZ()
 {
-	// pthread_t ptid;
-	// motorUnit->move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, RETRACT, pulsesPerExtendZ, Z_MOTOR_SPEED, &ptid);
-	// pthread_join(ptid, NULL);
+	pthread_t ptid;
+	motorUnit->move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, RETRACT, pulsesPerExtendZ, Z_MOTOR_SPEED, &ptid);
+	pthread_join(ptid, NULL);
 	return SUCCESS;
 }
 
@@ -433,8 +414,8 @@ uint32_t Grid::moveXY(ShelfCoord coordCurr, ShelfCoord coordDest, bool pollingOn
 
 	numUnits = abs(xMove);
 	numXPulses = pulsesPerUnitX * numUnits;
-	// if(numXPulses > 0)
-		// motorUnit->move(X_MOTOR_PIN, X_MOTOR_DIR_PIN, direction, numXPulses, X_MOTOR_SPEED, pollingOn, &ptidx);
+	if(numXPulses > 0)
+		motorUnit->move(X_MOTOR_PIN, X_MOTOR_DIR_PIN, direction, numXPulses, X_MOTOR_SPEED, pollingOn, &ptidx);
 	
 	//Move to destination Y COORD
 	int yMove = coordCurr.y - coordDest.y;
@@ -443,13 +424,13 @@ uint32_t Grid::moveXY(ShelfCoord coordCurr, ShelfCoord coordDest, bool pollingOn
 	
 	numUnits = abs(yMove);
 	numYPulses = pulsesPerUnitY * numUnits;
-	// if(numYPulses > 0)
-		// motorUnit->move(Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, direction, numYPulses, Y_MOTOR_SPEED, pollingOn, &ptidy);
+	if(numYPulses > 0)
+		motorUnit->move(Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, direction, numYPulses, Y_MOTOR_SPEED, pollingOn, &ptidy);
 
-	// if(numXPulses > 0)
-	// 	pthread_join(ptidx, NULL);
-	// if(numYPulses > 0)
-	// 	pthread_join(ptidy, NULL);
+	if(numXPulses > 0)
+		pthread_join(ptidx, NULL);
+	if(numYPulses > 0)
+		pthread_join(ptidy, NULL);
 	std::cout << "Finished Executing Thread\n";
 	
 	currentCoord = coordDest;
@@ -560,12 +541,30 @@ uint32_t Grid::fetchFromShelf(const Medicine& medication) {
 
 	/* --------------------- dropoff at pickup location ------------------- */
 
-	string barcode;
+	string barcode; 
 	//Move to pickup locations
 	for(int i = 0; i < NUM_RETURN_LOCATIONS; i++)
 	{
+		uint32_t retval = SUCCESS;
+		string barcode;
 		returnValue = moveXY(currentCoord, returnLocations[i], false);
-		cin >> barcode;
+		retval = getInputBarcode(&barcode);
+		if(retval == 1) //Empty space found
+		{
+			break;
+		}
+		else
+		{
+			std::cout << "Space occupied - checking next";
+		}
+		if(i == NUM_RETURN_LOCATIONS-1) // No empty spaces
+		{
+			moveXY(currentCoord, medication.coord, false);
+			extendZ();
+			containerLiftOrPlace(false);
+			extendZ();
+			moveXY(currentCoord, {0,0}, false);
+		}
 	}
 	
 	//Extend Z
@@ -579,6 +578,7 @@ uint32_t Grid::fetchFromShelf(const Medicine& medication) {
 
 	//Inform gridContainers that this medicine has been taken
 	updateGrid(medication.coord, false);
+	moveXY(currentCoord, {0,0}, true);
 
 	return returnValue;
 }

@@ -6,7 +6,7 @@
 #define GRID_DIM_Y 50 //Y dimensions of shelf in cm
 #define LIFT_AMOUNT_CM 6 // Amount to lift container in cm
 
-#define GRID_UNIT_MAX_COL 6
+#define GRID_UNIT_MAX_COL 5
 #define GRID_UNIT_MAX_ROW 4
 
 #define RIGHT 0
