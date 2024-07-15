@@ -41,7 +41,7 @@ uint32_t Control::calibrate(void)
     grid.moveXY({GRID_UNIT_MAX_COL-1,GRID_UNIT_MAX_ROW-1}, {0,0}, true /* polling on */);
 
     //Calibrate Z
-    grid.retractZ();
+    // grid.retractZ();
 
     grid.currentCoord = {0,0};
     return returnValue;
@@ -50,38 +50,28 @@ uint32_t Control::calibrate(void)
 
 uint32_t Control::bcodeControl(void)
 {
+    uint32_t returnValue;
 
-    // usleep(4000000);
-    // string inputStr;
-    // initscr();
-    // flushinp();
-    // char input[10];
-    // timeout(5000);
-    // int retVal = getstr(input);
-    // endwin();
+    if (motorUnit.pinSetup() != 0)
+    {
+        printf("Error: motor setup returned non-zero\n");
+        return returnValue;
+    }
+    sensorPinSetup(motorUnit.h);    
 
-    // inputStr = input;
+    /* Testing Code */
+     // grid.moveXY({0,0}, {2,1}, false);
+     // for(;;)
+     // {
+     //    int asdf;
+     //    grid.moveXY({1,1}, {1,0}, false);
+     //    cin >> asdf;
+     //    grid.moveXY({1,0}, {1,1}, false);
+     //    cin >> asdf;
+     // }
+    // for(;;);
 
-    // cout << "val:" << retVal << "\n";
-    // if(retVal == ERR) cout << "no input detected\n";
-    // else
-    // {
-    //     cout << input << "\n"; 
-    //     cout << inputStr << "\n";   
-    // }
-
-    // for (;;)
-    // {
-
-    // }
-    // uint32_t returnValue =  SUCCESS;
-
-    // if (motorUnit.pinSetup() != 0)
-    // {
-    //     printf("Error: motor setup returned non-zero\n");
-    //     return returnValue;
-    // }
-    // sensorPinSetup(motorUnit.h);    
+    /* --------------------------------------------------    */
 
     std::cout << "Initial Calibration\n";
     calibrate();
@@ -204,83 +194,6 @@ uint32_t Control::bcodeControl(void)
 
 
 
-}
-
-uint32_t Control::control(void)
-{
-    uint32_t returnValue = SUCCESS;
-
-    /*if (motorUnit.pinSetup() != 0)
-    {
-        printf("Error: motor setup returned non-zero\n");
-        return returnValue;
-    }*/
-    sensorPinSetup(motorUnit.h);
-
-    bool sensVal = false;
-    grid.extendZ();
-    /*for(;;)
-    {
-        get_y_sensor_value(sensVal);
-        cout << "test" << "\n";
-        usleep(100000);
-    }*/
-    calibrate();
-
-    //Test grid functions
-    grid.printGrid();
-    grid.shelfSetup();
-    grid.printGrid();
-
-    //Test movement
-    // ShelfCoord curr {1,0};
-    // ShelfCoord dest {0,0};
-    // cout << "Moving to dest\n";
-    // grid.moveXY(curr, dest);
-    // cout << "Current Coord: (" << grid.currentCoord.x << "," << grid.currentCoord.y << ")\n";
-    // cout << "Moving back\n";
-    // // grid.moveXY(curr, dest);
-    // cout << "Current Coord: (" << grid.currentCoord.x << "," << grid.currentCoord.y << ")\n";
-    
-    for(;;)
-    {
-
-        string medicationBarcode;
-        string medicationName;
-        std::string fetchOrReturn;
-
-        printf("\"fetch\" or \"return\"? (lowercase, no whitespace) ");
-        std::cin >> fetchOrReturn;
-
-        if (fetchOrReturn == "fetch")
-        {
-            printf("Enter medicine name to fetch - ");
-            cin>> medicationName;
-            
-            if (grid.fetchFromShelfByName(medicationName) == 1)
-            {
-                printf("Error");
-            }
-        }
-
-        else if(fetchOrReturn == "return")//return
-        {
-            if (grid.returnToShelf() == 1)
-            {
-                printf("Error");
-            }
-            /*
-            printf("Scan barcode - ");
-            cin >> medicationBarcode;
-
-            if (grid.returnToShelfByBarcode(medicationBarcode) == 1)
-            {
-                printf("Error");
-            }*/
-        }
-        grid.moveXY(grid.currentCoord, {0,0}, true);
-
-    }
 }
 
 int main()

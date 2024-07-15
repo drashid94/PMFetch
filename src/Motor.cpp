@@ -29,9 +29,9 @@ static void motorRampUp(MovementInfo *movementInfo)
     uint32_t motorSpeedFinal = movementInfo->motorSpeed;
     bool pollSensor = movementInfo->pollSensor;
 
-    uint32_t segments = 10;
+    uint32_t segments = 20;
     uint32_t numPulsesPerSeg = pulses/segments;
-    uint32_t motorSpeed = (segments+1)*motorSpeedFinal;
+    uint32_t motorSpeed = (segments+1)*motorSpeedFinal/4;
 
     uint32_t pollCounter = 0;
     for(uint32_t i = 0; i < segments; i++)
@@ -62,6 +62,7 @@ static void motorRampUp(MovementInfo *movementInfo)
             pollCounter++;
         }
         motorSpeed -= motorSpeedFinal;
+        if(motorSpeed < motorSpeedFinal) motorSpeed = motorSpeedFinal;
     }
     std::cout << "Final Motor Speed Reached during ramp up: " << motorSpeed << "\n";
 }
@@ -73,7 +74,7 @@ void motorRampDown(MovementInfo * movementInfo)
     uint32_t motorSpeed = movementInfo->motorSpeed;
     bool pollSensor = movementInfo->pollSensor;
 
-    uint32_t segments = 10;
+    uint32_t segments = 20;
     uint32_t numPulsesPerSeg = pulses/segments;
     uint32_t pollCounter = 0;
     for(uint32_t i = 0; i < segments; i++)
@@ -103,7 +104,7 @@ void motorRampDown(MovementInfo * movementInfo)
             usleep(motorSpeed);
             pollCounter++;
         }
-        motorSpeed += motorSpeed/5;
+        motorSpeed += motorSpeed/10;
     }
     std::cout << "Final Motor Speed Reached during ramp down: " << motorSpeed << "\n";
 }
@@ -119,7 +120,7 @@ void *moveFunc(void * moveParams)
     uint32_t pollCounter = 0;
     std::cout << "Creating " << pulsesTotal << " total pulses\n";
 
-    uint32_t rampPulses = .2 * pulsesTotal;
+    uint32_t rampPulses = .1 * pulsesTotal;
     movementInfo->pulses = rampPulses/2;
     motorRampUp(movementInfo);
     if(movementInfo->sensorPushed) pthread_exit(NULL);
