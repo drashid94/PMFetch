@@ -39,16 +39,11 @@ public:
 	uint32_t extendZ();
 	uint32_t retractZ();
 	uint32_t containerLiftOrPlace(bool lift);
-<<<<<<< HEAD
-	uint32_t moveXY(ShelfCoord coordCurr, ShelfCoord coordDest);
-	uint32_t returnToShelfByBarcode (string barcode, int returnLocationNum); // search grid by name and call returntoshelf
-=======
 	uint32_t moveXY(ShelfCoord coordCurr, ShelfCoord coordDest, bool pollingOn);
 	uint32_t returnToShelfByBarcode (string barcode); // search grid by name and call returntoshelf
 	uint32_t fetchFromShelfByBarcode (string barcode); // search grid by name and call fetchFromShelf
->>>>>>> origin/motorThreads+Accel
 	uint32_t fetchFromShelfByName (string medicationName); // search grid by name and call fetchfromshelf
-	uint32_t returnToShelf(const Medicine& medication, int returnLocationNum); // calls move from motor unit
+	uint32_t returnToShelf(const Medicine& medication); // calls move from motor unit
 	uint32_t fetchFromShelf(const Medicine& medication); // calls move from motor unit
 	uint32_t returnToShelf();
 	uint32_t getBarcode(string& barcode);

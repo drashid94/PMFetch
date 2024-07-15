@@ -15,6 +15,7 @@
 
 uint32_t getInputBarcode(std::string * barcode)
 {    
+	cout << "Scanning......\n";
 
     initscr();
     refresh();
@@ -176,7 +177,7 @@ uint32_t Grid::isMedValid(string barcode)
 	return returnValue;
 }
 
-uint32_t Grid::returnToShelfByBarcode(string barcode, int returnLocationNum) // search grid by name and call returntoshelf
+uint32_t Grid::returnToShelfByBarcode(string barcode)// search grid by name and call returntoshelf
 {
 	uint32_t returnValue = SUCCESS;
 	for(uint32_t x = 0; x < gridContainers.size(); x++)
@@ -187,13 +188,21 @@ uint32_t Grid::returnToShelfByBarcode(string barcode, int returnLocationNum) // 
 			{
 				if(gridContainers[x][y].med.barcode == barcode)
 				{
-					returnValue = returnToShelf(gridContainers[x][y].med, returnLocationNum);
+					if(gridContainers[x][y].med.onShelf)
+					{
+						std::cout << "Medication already on shelf\n";
+						returnValue = 1;
+					}
+					else
+					{
+						returnValue = returnToShelf(gridContainers[x][y].med);
+					}
 					return returnValue;
 				}
 			}
 		}
 	}
-	printf("Medicine not on shelf");
+	std::cout << "Medicine not on shelf\n";
 	return returnValue;
 }
 
@@ -208,7 +217,7 @@ uint32_t Grid::fetchFromShelfByBarcode(string barcode)
 			{
 				if(gridContainers[x][y].med.barcode == barcode)
 				{
-					std::cout << "Barcode recognized as " << gridContainers[x][y].med.medication_name;
+					std::cout << "Barcode recognized\n";
 					returnValue = fetchFromShelf(gridContainers[x][y].med);
 				}				
 			}
@@ -224,7 +233,7 @@ uint32_t Grid::getMedFromBarcode(string barcode, Medicine *med)
 	{
 		for (uint32_t y = 0; y < gridContainers[x].size(); y++)
 		{
-			if (gridContainers[x][y].occupied && gridContainers[x][y].med.onShelf)
+			if (gridContainers[x][y].occupied)
 			{
 				if(gridContainers[x][y].med.barcode == barcode)
 				{
@@ -242,7 +251,7 @@ uint32_t Grid::deleteFromShelf(string barcode)
 {
 	Medicine med;
 	uint32_t returnValue = SUCCESS;
-	if(getMedFromBarcode(barcode, &med))
+	if(getMedFromBarcode(barcode, &med) == SUCCESS)
 	{
 		if(med.onShelf)
 		{
@@ -376,7 +385,7 @@ uint32_t Grid::shelfSetupByBarcode()
 		}
 		else
 		{
-			std::cout << "Container not found\nMove to next returnLocation";
+			std::cout << "Container not found\nMove to next return location\n";
 		}
 		usleep(3000000);
 	}
@@ -460,96 +469,40 @@ struct threadArguments {
   // Add other members for additional data
 };
 
-void * getBarcode(void * barcode)
-{
-	printf("Get barcode thread\n");
-	threadArguments* barcodes = (threadArguments*) barcode;
-	printf("Receive barcode...\n");
-	cin >> *barcodes->valuePtr;
-	printf("Barcode received \n");
-	return NULL;
-}
-
-uint32_t Grid::getBarcode(string & barcode)
-{
-	printf("Scanning for barcode...\n");
-	fd_set readfds;
-    struct timeval tv;
-
-    // Clear the file descriptor set
-    FD_ZERO(&readfds);
-
-    // Add stdin to the set
-    FD_SET(STDIN_FILENO, &readfds);
-
-    // Set the timeout
-    tv.tv_sec = 1; // 1 second timeout
-    tv.tv_usec = 0;
-
-    int result = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &tv);
-
-    if (result == -1) {
-        // Error handling
-        //cerr << "Error in select()" << endl;
-        return 1;
-    } else if (result == 0) {
-        // Timeout
-        return 1;
-    } else {
-        // Input available
-        cin >> barcode;
-		printf("Barcode scanned\n");
-        return 0;
-    }
-}
 
 uint32_t Grid::returnToShelf() {
-	printf("Return sequence started\n");
+	cout << "Return sequence started\n";
 	uint32_t returnValue = SUCCESS;
 	string returnBarcodes[NUM_RETURN_LOCATIONS];
 	int count = 0;
 
-	// Move to all pick up locations and scan barcodes
-	for (int i = 0; i < NUM_RETURN_LOCATIONS; i++)
+
+
+	for(int i = 0; i < NUM_RETURN_LOCATIONS; i++)
 	{
-		returnValue = moveXY(currentCoord, returnLocations[i]);
+		string barcode;
+		moveXY(currentCoord, returnLocations[i], false);
 
-		/*// Two threads to read barcode and timeout
-		pthread_t readBarcode_thread, timeout_thread;
-
-		if (pthread_create(&readBarcode_thread, NULL, (void*)getBarcode(returnBarcodes[i]), NULL) != 0) {
-			return 1;
-		}
-
-		usleep(5*1000000); // 5 second wait
-		pthread_cancel(readBarcode_thread);*/
-
-		if(getBarcode(returnBarcodes[i]) != 0)
+		uint32_t retval = getInputBarcode(&barcode);
+		if(retval == SUCCESS)
 		{
-			printf("No barcode read\n");
+			std::cout << "BARCODE: " << barcode << "\n";			
+			if(returnToShelfByBarcode(barcode) != SUCCESS)
+			{
+				std::cout << "Error\n";
+			}
 		}
 		else
 		{
-			count++;
+			std::cout << "Container not found\nMove to next return location\n";
 		}
-
-	}
-
-	printf("Returning %d items\n", count);
-
-	for (int i = 0; i < NUM_RETURN_LOCATIONS; i++)
-	{
-		// Check if barcode is valid or was entered
-		if (!returnBarcodes[i].empty())
-		{
-			returnToShelfByBarcode(returnBarcodes[i], i);
-		}
+		usleep(5*1000000);
 	}
 
 	return returnValue;
 }
 
-uint32_t Grid::returnToShelf(const Medicine& medication, int returnLocationNum) {
+uint32_t Grid::returnToShelf(const Medicine& medication) {
 	// check if it exists in gridContainers
 	// call move sequence for picking up drop off container and placing in new position
 	// update gridContainer
@@ -611,12 +564,14 @@ uint32_t Grid::fetchFromShelf(const Medicine& medication) {
 	/* --------------------- dropoff at pickup location ------------------- */
 
 	string barcode;
-	//Move to pickup locations
+	/*//Move to pickup locations
 	for(int i = 0; i < NUM_RETURN_LOCATIONS; i++)
 	{
 		returnValue = moveXY(currentCoord, returnLocations[i], false);
 		cin >> barcode;
-	}
+	}*/
+
+	moveXY(currentCoord, returnLocations[1], false);
 	
 	//Extend Z
 	returnValue = extendZ();

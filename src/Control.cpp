@@ -86,12 +86,14 @@ uint32_t Control::bcodeControl(void)
     std::cout << "Initial Calibration\n";
     calibrate();
 
-    std::cout << "Calibration complete!\nPlease scan bardcodes to begin\n";
+    std::cout << "Calibration complete!\n";
 
     std::string bcodeCommand;
     
     for(;;)
     {
+        cout << "Please scan barcodes to begin\n";
+
         std::cin >> bcodeCommand;
         if(bcodeCommand == "A-0010-Z")
         {
@@ -102,8 +104,13 @@ uint32_t Control::bcodeControl(void)
         }
         else if(bcodeCommand == "A-0020-Z")
         {
-            std::cout << "Deleting next scanned medication\n";
+            string barcode;
 
+            std::cin >> barcode;
+
+            std::cout << "Deleting next scanned medication\n";
+            grid.deleteFromShelf(barcode);
+            // TODO a way to cancel delete after delete barcode has been scanned
 
         }
         /* Single Fetch */
@@ -113,6 +120,7 @@ uint32_t Control::bcodeControl(void)
             std::cout << "Fetching next scanned barcode";
             cin >> bcode;
             grid.fetchFromShelfByBarcode(bcode);
+            // TODO a way to cancel delete after delete barcode has been scanned
         }
         /* Multi Fetch */
         else if(bcodeCommand == "A-0040-Z")
@@ -142,13 +150,14 @@ uint32_t Control::bcodeControl(void)
             }
 
         }
-        else if(bcodeCommand == "A-0050-Z") // Calibrate
+        else if(bcodeCommand == "A-0050-Z") // Return
         {
-            calibrate();   
+            grid.returnToShelf();
+            cout << "Return sequence complete\n";
         }
-        else if(bcodeCommand == "A-0060-Z") // printGrid
+        else if(bcodeCommand == "A-0060-Z")
         {
-            grid.printGrid();
+
         }
         else if(bcodeCommand == "A-0070-Z")
         {
@@ -158,13 +167,13 @@ uint32_t Control::bcodeControl(void)
         {
             
         }
-        else if(bcodeCommand == "A-0090-Z")
+        else if(bcodeCommand == "A-0090-Z") // Calibrate
         {
-            
+            calibrate(); 
         }
-        else if(bcodeCommand == "A-0100-Z")
+        else if(bcodeCommand == "A-0100-Z") // printGrid
         {
-            
+            grid.printGrid();    
         }
         else if(grid.isMedValid(bcodeCommand) == SUCCESS)
         {
