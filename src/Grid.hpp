@@ -16,7 +16,7 @@ struct GridUnit
 	bool occupied;
 };
 
-uint32_t getInputBarcode(std::string * barcode);
+uint32_t getInputBarcode(std::string * barcode, int timeout);
 
 class Grid {
 public:

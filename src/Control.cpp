@@ -95,6 +95,8 @@ uint32_t Control::bcodeControl(void)
         cout << "Please scan barcodes to begin\n";
 
         std::cin >> bcodeCommand;
+
+        /* Setting up */
         if(bcodeCommand == "A-0010-Z")
         {
             //Add item to the shelf
@@ -102,15 +104,24 @@ uint32_t Control::bcodeControl(void)
             grid.shelfSetupByBarcode();
 
         }
+        /* Delete */
         else if(bcodeCommand == "A-0020-Z")
         {
-            string barcode;
-
-            std::cin >> barcode;
-
+            string bcode;
             std::cout << "Deleting next scanned medication\n";
-            grid.deleteFromShelf(barcode);
-            // TODO a way to cancel delete after delete barcode has been scanned
+            if(getInputBarcode(&bcode, 20) != SUCCESS)
+            {
+                std::cout << "Operation timeout\n";
+                continue;
+            }
+
+            if (bcode == "A-0080-Z")
+            {
+                std::cout << "Delete cancelled\n";
+                continue;
+            }
+
+            grid.deleteFromShelf(bcode);
 
         }
         /* Single Fetch */
@@ -118,9 +129,19 @@ uint32_t Control::bcodeControl(void)
         {
             string bcode;
             std::cout << "Fetching next scanned barcode";
-            cin >> bcode;
+            if(getInputBarcode(&bcode, 20) != SUCCESS)
+            {
+                std::cout << "Operation timeout\n";
+                continue;
+            }
+
+            if (bcode == "A-0080-Z")
+            {
+                std::cout << "Fetch cancelled\n";
+                continue;
+            }
+
             grid.fetchFromShelfByBarcode(bcode);
-            // TODO a way to cancel delete after delete barcode has been scanned
         }
         /* Multi Fetch */
         else if(bcodeCommand == "A-0040-Z")
@@ -163,9 +184,9 @@ uint32_t Control::bcodeControl(void)
         {
             
         }
-        else if(bcodeCommand == "A-0080-Z")
+        else if(bcodeCommand == "A-0080-Z") // Cancel selection
         {
-            
+            // does nothing
         }
         else if(bcodeCommand == "A-0090-Z") // Calibrate
         {

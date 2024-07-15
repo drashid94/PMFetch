@@ -13,7 +13,7 @@
 #include <iostream>
 #include <ncurses.h>
 
-uint32_t getInputBarcode(std::string * barcode)
+uint32_t getInputBarcode(std::string * barcode, int timeoutInSeconds)
 {    
 	cout << "Scanning......\n";
 
@@ -21,7 +21,7 @@ uint32_t getInputBarcode(std::string * barcode)
     refresh();
     flushinp();
     char input[100];
-    timeout(5000);
+    timeout(timeoutInSeconds*1000);
     int retVal = getstr(input);
     endwin();
 
@@ -365,7 +365,7 @@ uint32_t Grid::shelfSetupByBarcode()
 		string barcode;
 		moveXY(currentCoord, returnLocations[i], false);
 		cout << "Calling get input func\n";
-		uint32_t retval = getInputBarcode(&barcode);
+		uint32_t retval = getInputBarcode(&barcode, 5);
 		if(retval == SUCCESS)
 		{
 			std::cout << "Container detected\nLocate empty spot on shelf\n";
@@ -483,7 +483,7 @@ uint32_t Grid::returnToShelf() {
 		string barcode;
 		moveXY(currentCoord, returnLocations[i], false);
 
-		uint32_t retval = getInputBarcode(&barcode);
+		uint32_t retval = getInputBarcode(&barcode, 5);
 		if(retval == SUCCESS)
 		{
 			std::cout << "BARCODE: " << barcode << "\n";			
