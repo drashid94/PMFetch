@@ -13,13 +13,25 @@
 #include <iostream>
 #include <ncurses.h>
 
-uint32_t getInputBarcode(std::string * barcode, int timeoutInSeconds)
+uint32_t Grid::getInputBarcode(std::string * barcode, int timeoutInSeconds, bool liftAndPlace, bool isFetch)
 {    
-	cout << "Scanning......\n";
-
-    initscr();
+	std::cout << "Scanning......\n";
+	initscr();
     refresh();
     flushinp();
+    if(liftAndPlace)
+    {
+    	if(isFetch)
+    	{
+    		containerLiftOrPlace(false);
+			containerLiftOrPlace(true);		
+    	}
+    	else
+    	{
+	    	containerLiftOrPlace(true);
+			containerLiftOrPlace(false);	
+		}
+    }
     char input[100];
     timeout(timeoutInSeconds*1000);
     int retVal = getstr(input);
@@ -39,17 +51,17 @@ Grid::Grid(Motor* motorUnitIn, MedicineDatabase* medicineDatabaseIn, int xdimens
     }
     currentCoord = {0, 0};
     // pickupLocation = {3, 3}; // rightmost column of the bottom row
-	returnLocations[0] = {0, GRID_UNIT_MAX_ROW};
-	returnLocations[1] = {1, GRID_UNIT_MAX_ROW};
-	returnLocations[2] = {2, GRID_UNIT_MAX_ROW}; 
-	returnLocations[3] = {3, GRID_UNIT_MAX_ROW};
-	returnLocations[4] = {4, GRID_UNIT_MAX_ROW};
-	returnLocations[5] = {5, GRID_UNIT_MAX_ROW}; // All bottom row
+	returnLocations[0] = {0, GRID_UNIT_MAX_ROW-1};
+	returnLocations[1] = {1, GRID_UNIT_MAX_ROW-1};
+	returnLocations[2] = {2, GRID_UNIT_MAX_ROW-1}; 
+	// returnLocations[3] = {3, GRID_UNIT_MAX_ROW-1};
+	// returnLocations[4] = {4, GRID_UNIT_MAX_ROW-1};
+	// returnLocations[5] = {5, GRID_UNIT_MAX_ROW-1}; // All bottom row
     // Calculate pulses per unit for each dimension
-	pulsesPerUnitX = 1200;
-	pulsesPerUnitY = 16000;
-	pulsesPerLiftY = 3000;
-	pulsesPerExtendZ = 4500;
+	pulsesPerUnitX = 1150;
+	pulsesPerUnitY = 13000;
+	pulsesPerLiftY = 2700;
+	pulsesPerExtendZ = 4250;
 
 	gridContainers.resize(numUnitsY);
 	for(uint32_t i = 0; i < gridContainers.size(); i++)
@@ -346,7 +358,7 @@ uint32_t Grid::shelfSetupByBarcode()
 		string barcode;
 		moveXY(currentCoord, returnLocations[i], false);
 		cout << "Calling get input func\n";
-		uint32_t retval = getInputBarcode(&barcode, 5);
+		uint32_t retval = getInputBarcode(&barcode, 1, true, false);
 		if(retval == SUCCESS)
 		{
 			std::cout << "Container detected\nLocate empty spot on shelf\n";
@@ -384,7 +396,7 @@ uint32_t Grid::extendZ()
 uint32_t Grid::retractZ()
 {
 	pthread_t ptid;
-	motorUnit->move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, RETRACT, pulsesPerExtendZ, Z_MOTOR_SPEED, &ptid);
+	motorUnit->move(Z_MOTOR_PIN, Z_MOTOR_DIR_PIN, RETRACT, pulsesPerExtendZ, Z_MOTOR_SPEED, true, &ptid);
 	pthread_join(ptid, NULL);
 	return SUCCESS;
 }
@@ -455,16 +467,13 @@ uint32_t Grid::returnToShelf() {
 	cout << "Return sequence started\n";
 	uint32_t returnValue = SUCCESS;
 	string returnBarcodes[NUM_RETURN_LOCATIONS];
-	int count = 0;
-
-
 
 	for(int i = 0; i < NUM_RETURN_LOCATIONS; i++)
 	{
 		string barcode;
 		moveXY(currentCoord, returnLocations[i], false);
 
-		uint32_t retval = getInputBarcode(&barcode, 5);
+		uint32_t retval = getInputBarcode(&barcode, 1, true, false);
 		if(retval == SUCCESS)
 		{
 			std::cout << "BARCODE: " << barcode << "\n";			
@@ -542,6 +551,7 @@ uint32_t Grid::fetchFromShelf(const Medicine& medication) {
 	// retract Z
 	returnValue = retractZ();
 
+
 	/* --------------------- dropoff at pickup location ------------------- */
 
 	string barcode;
@@ -549,9 +559,8 @@ uint32_t Grid::fetchFromShelf(const Medicine& medication) {
 	for(int i = 0; i < NUM_RETURN_LOCATIONS; i++)
 	{
 		string barcode;
-		returnValue = moveXY(currentCoord, returnLocations[i], false);
-
-		returnValue = getInputBarcode(&barcode, 5);
+		returnValue = moveXY(currentCoord, returnLocations[i], false);		
+		returnValue = getInputBarcode(&barcode, 1, true, true);
 		if(returnValue == 1) //Empty space found
 		{
 			break;

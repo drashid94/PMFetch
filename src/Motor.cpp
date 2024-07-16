@@ -64,7 +64,7 @@ static void motorRampUp(MovementInfo *movementInfo)
         motorSpeed -= motorSpeedFinal;
         if(motorSpeed < motorSpeedFinal) motorSpeed = motorSpeedFinal;
     }
-    std::cout << "Final Motor Speed Reached during ramp up: " << motorSpeed << "\n";
+    // std::cout << "Final Motor Speed Reached during ramp up: " << motorSpeed << "ramp pulses : " << pulses << "\n";
 }
 
 void motorRampDown(MovementInfo * movementInfo)
@@ -106,7 +106,7 @@ void motorRampDown(MovementInfo * movementInfo)
         }
         motorSpeed += motorSpeed/10;
     }
-    std::cout << "Final Motor Speed Reached during ramp down: " << motorSpeed << "\n";
+    // std::cout << "Final Motor Speed Reached during ramp down: " << motorSpeed << "ramp pulses : " << pulses << "\n";
 }
 
 void *moveFunc(void * moveParams)
@@ -118,7 +118,6 @@ void *moveFunc(void * moveParams)
     uint32_t motorSpeed = movementInfo->motorSpeed;
     bool pollSensor = movementInfo->pollSensor;
     uint32_t pollCounter = 0;
-    std::cout << "Creating " << pulsesTotal << " total pulses\n";
 
     uint32_t rampPulses = .1 * pulsesTotal;
     movementInfo->pulses = rampPulses/2;
@@ -137,7 +136,7 @@ void *moveFunc(void * moveParams)
                 get_z_sensor_value(contactVal);
             if(contactVal)
             {
-                std::cout << "Contact Sensor on " << ((motorPin == 13) ? "x" : "y") << " pushed\nExiting movement function\n";
+                // std::cout << "Contact Sensor on " << ((motorPin == 13) ? "x" : "y") << " pushed\nExiting movement function\n";
                 pthread_exit(NULL);
             }
             pollCounter = 0;
@@ -154,12 +153,12 @@ void *moveFunc(void * moveParams)
 
 uint32_t Motor::move(uint32_t motorPin, uint32_t motorDirPin, uint32_t direction, uint32_t pulses, uint32_t motorSpeed, bool pollSensor, pthread_t *ptid)
 {    
-    printf("Movement function called\n");
-    printf("Motor: MotorPin: %d Direction: %d\n", motorPin, direction);
+    // std::cout << "Movement function called\n";
+    // std::cout << "Motor: MotorPin: " << motorPin << " Direction: " << direction << "\n";
     lgGpioWrite(h, motorDirPin, direction);
     usleep(10000);
-    printf("Motor: Pulses: %d\n", pulses);
-    std::cout << "Creating thread\n";
+    // std::cout << "Motor: Pulses: " << pulses << "\n";
+    // std::cout << "Creating thread\n";
     MovementInfo *mInfo = new MovementInfo{motorPin, motorDirPin, direction, pulses, motorSpeed, pollSensor, false};
     pthread_create(ptid, NULL, &moveFunc, (void*)mInfo);
 
