@@ -143,6 +143,7 @@ uint32_t Grid::updateGrid(ShelfCoord shelfCoord, bool returning)
 	cout << "Updating Grid:\n " << shelfCoord.x << " " << shelfCoord.y << "\n";
 
 	gridContainers[shelfCoord.y][shelfCoord.x].med.onShelf = returning;
+	serializeGrid();
 	return SUCCESS;
 }
 
@@ -166,6 +167,7 @@ uint32_t Grid::addNewItemToGrid(GridUnit * gridUnit)
 	uint32_t y = gridUnit->med.coord.y;
 	// memcpy((void*)&gridContainers[y][x], (void*)gridUnit, sizeof(GridUnit));
 	gridContainers[y][x] = *gridUnit;
+	serializeGrid();
 	return SUCCESS;
 }
 
@@ -189,7 +191,7 @@ uint32_t Grid::isMedValid(string barcode)
 	return returnValue;
 }
 
-uint32_t Grid::returnToShelfByBarcode(string barcode)// search grid by name and call returntoshelf
+uint32_t Grid::returnToShelfByBarcode(string barcode, bool force)// search grid by name and call returntoshelf
 {
 	uint32_t returnValue = SUCCESS;
 	for(uint32_t x = 0; x < gridContainers.size(); x++)
@@ -200,7 +202,7 @@ uint32_t Grid::returnToShelfByBarcode(string barcode)// search grid by name and 
 			{
 				if(gridContainers[x][y].med.barcode == barcode)
 				{
-					if(gridContainers[x][y].med.onShelf)
+					if(gridContainers[x][y].med.onShelf && !force)
 					{
 						std::cout << "Medication already on shelf\n";
 						returnValue = 1;
@@ -273,6 +275,7 @@ uint32_t Grid::deleteFromShelf(string barcode)
 		else
 		{
 			gridContainers[med.coord.x][med.coord.y].occupied = false;
+			serializeGrid();
 		}
 	}
 	else
@@ -342,6 +345,7 @@ uint32_t Grid::addNewItemToGrid(string barcode)
 				gridContainers[x][y].occupied = true;
 				cout << "ANITG " << gridContainers[x][y].med.coord.x << " " << gridContainers[x][y].med.coord.y << "\n";
 				cout << "Added medicine to gridContainers\n";
+				serializeGrid();
 				return SUCCESS;
 			}
 		}
@@ -477,7 +481,7 @@ uint32_t Grid::returnToShelf() {
 		if(retval == SUCCESS)
 		{
 			std::cout << "BARCODE: " << barcode << "\n";			
-			if(returnToShelfByBarcode(barcode) != SUCCESS)
+			if(returnToShelfByBarcode(barcode, false) != SUCCESS)
 			{
 				std::cout << "Error\n";
 			}
@@ -529,7 +533,7 @@ uint32_t Grid::returnToShelf(const Medicine& medication) {
 
 	//Inform gridContainers that this medicine has been returned
 	updateGrid(medication.coord, true);
-
+	serializeGrid();
 	return returnValue;
 }
 
@@ -591,6 +595,63 @@ uint32_t Grid::fetchFromShelf(const Medicine& medication) {
 	//Inform gridContainers that this medicine has been taken
 	updateGrid(medication.coord, false);
 	moveXY(currentCoord, {0,0}, true);
+	serializeGrid();
 
 	return returnValue;
+}
+
+uint32_t Grid::forceReturn()
+{
+	cout << "Force return sequence started\n";
+	uint32_t returnValue = SUCCESS;
+	string returnBarcodes[NUM_RETURN_LOCATIONS];
+
+	for(int i = 0; i < NUM_RETURN_LOCATIONS; i++)
+	{
+		string barcode;
+		moveXY(currentCoord, returnLocations[i], false);
+
+		uint32_t retval = getInputBarcode(&barcode, 1, true, false); //confirm last 2 arguments
+		if(retval == SUCCESS)
+		{
+			std::cout << "BARCODE: " << barcode << "\n";			
+			if(returnToShelfByBarcode(barcode, true) != SUCCESS)
+			{
+				std::cout << "Error\n";
+			}
+		}
+		else
+		{
+			std::cout << "Container not found\nMove to next return location\n";
+		}
+		usleep(1000000);
+	}
+
+	return returnValue;
+}
+
+// Implementation of serializeGrid outside the Grid class
+void Grid::serializeGrid() {
+  std::ofstream file(gridfile);
+  if (!file.is_open()) {
+    // Handle file opening error
+    return;
+  }
+
+  // Write the number of GridUnits
+  //int numUnits = gridContainers.size();
+  //file << numUnits << std::endl;
+
+  // Loop through each row and column and serialize its data
+  for (auto & gridRow: gridContainers)
+  {
+	for (const GridUnit& unit : gridRow) {
+		// Serialize Medicine data
+		file << unit.med.medication_name << std::endl;
+		file << unit.med.barcode << std::endl;
+		file << unit.med.onShelf << std::endl;
+		file << unit.occupied << std::endl;
+	}
+  }
+  file.close();
 }

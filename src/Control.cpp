@@ -23,10 +23,12 @@ public:
     uint32_t control(void);
     uint32_t bcodeControl(void);
     void liftPlaceRoutine(void);
+    void readyForInput(bool isReady);
 private:
     Motor motorUnit;
     MedicineDatabase medData;
     vector<string> fetchQueue;
+    uint32_t gpioHandle;
     Grid grid{&motorUnit, &medData, GRID_DIM_X, GRID_DIM_Y, GRID_UNIT_MAX_COL /* X units */, GRID_UNIT_MAX_ROW /* Y units */};    
 
 };
@@ -34,6 +36,12 @@ private:
 Control::Control()
 {
     fetchQueue.resize(FETCH_QUEUE_MAX_SIZE);
+}
+
+void Control::readyForInput(bool isReady)
+{
+    lgGpioWrite(gpioHandle, LED_GREEN_PIN, isReady);
+    lgGpioWrite(gpioHandle, LED_RED_PIN, !isReady);
 }
 
 uint32_t Control::calibrate(void)
@@ -79,6 +87,7 @@ uint32_t Control::bcodeControl(void)
         return returnValue;
     }
     sensorPinSetup(motorUnit.h);
+    gpioHandle = motorUnit.getGpioHandle();
     usleep(1000000);
     //3750
 
@@ -236,12 +245,14 @@ uint32_t Control::bcodeControl(void)
     std::cout << "Initial Calibration\n";
     calibrate();
     std::cout << "Calibration complete!\n";
-
+    readyForInput(true);
     std::string bcodeCommand;
+    readyForInput(false);
     
     for(;;)
     {
         std::cout << "Please scan barcodes to begin\n";
+
 
         std::cin >> bcodeCommand;
 
@@ -258,6 +269,7 @@ uint32_t Control::bcodeControl(void)
         {
             string bcode;
             std::cout << "Deleting next scanned medication\n";
+            readyForInput(true);
             if(grid.getInputBarcode(&bcode, 20, false, false) != SUCCESS)
             {
                 std::cout << "Operation timeout\n";
@@ -271,6 +283,7 @@ uint32_t Control::bcodeControl(void)
             }
 
             grid.deleteFromShelf(bcode);
+            readyForInput(false);
 
         }
         /* Single Fetch */
@@ -278,6 +291,7 @@ uint32_t Control::bcodeControl(void)
         {
             string bcode;
             std::cout << "Fetching next scanned barcode";
+            readyForInput(true);
             if(grid.getInputBarcode(&bcode, 20, false, false) != SUCCESS)
             {
                 std::cout << "Operation timeout\n";
@@ -291,6 +305,7 @@ uint32_t Control::bcodeControl(void)
             }
 
             grid.fetchFromShelfByBarcode(bcode);
+            readyForInput(false);
         }
         /* Multi Fetch */
         else if(bcodeCommand == "A-0040-Z")
@@ -298,6 +313,7 @@ uint32_t Control::bcodeControl(void)
             string bcode;
             std::cout << "Fetching multiple barcodes\n";
             int fetchQueueSize = 0;           
+            readyForInput(true);
             for(int i = 0; i < FETCH_QUEUE_MAX_SIZE; i++)
             {                
                 std::cin >> bcode;
@@ -313,6 +329,7 @@ uint32_t Control::bcodeControl(void)
                 }                                
             }
 
+            readyForInput(false);
             std::cout << "Fetch queue has been created\nStarting fetches\n";
             for(int i = 0; i < fetchQueueSize; i++)
             {
@@ -326,9 +343,10 @@ uint32_t Control::bcodeControl(void)
             grid.returnToShelf();
             cout << "Return sequence complete\n";
         }
-        else if(bcodeCommand == "A-0060-Z")
+        else if(bcodeCommand == "A-0060-Z") // Force return
         {
-
+            grid.forceReturn();
+            cout << "Force return complete\n";
         }
         else if(bcodeCommand == "A-0070-Z")
         {
