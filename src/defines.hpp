@@ -10,9 +10,9 @@
 #define GRID_UNIT_MAX_ROW 4
 
 #define RIGHT 0
-#define UP 0
+#define UP 1   /// keith changed this from a 0 to 1
 #define LEFT 1
-#define DOWN 1
+#define DOWN 0 /// keith changed this from a 1 to 0
 #define EXTEND 1
 #define RETRACT 0
 

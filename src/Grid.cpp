@@ -58,10 +58,10 @@ Grid::Grid(Motor* motorUnitIn, MedicineDatabase* medicineDatabaseIn, int xdimens
 	// returnLocations[4] = {4, GRID_UNIT_MAX_ROW-1};
 	// returnLocations[5] = {5, GRID_UNIT_MAX_ROW-1}; // All bottom row
     // Calculate pulses per unit for each dimension
-	pulsesPerUnitX = 1150;
-	pulsesPerUnitY = 13000;
-	pulsesPerLiftY = 2700;
-	pulsesPerExtendZ = 4250;
+	pulsesPerUnitX = 1155;
+	pulsesPerUnitY = 13150;
+	pulsesPerLiftY = 2500;
+	pulsesPerExtendZ = 8500;  // keith chnaged this from 4250 to 8500
 
 	gridContainers.resize(numUnitsY);
 	for(uint32_t i = 0; i < gridContainers.size(); i++)
@@ -380,7 +380,7 @@ uint32_t Grid::shelfSetupByBarcode()
 		{
 			std::cout << "Container not found\nMove to next return location\n";
 		}
-		usleep(3000000);
+		usleep(500000);
 	}
 	return SUCCESS;
 }
@@ -486,7 +486,7 @@ uint32_t Grid::returnToShelf() {
 		{
 			std::cout << "Container not found\nMove to next return location\n";
 		}
-		usleep(5*1000000);
+		usleep(1000000);
 	}
 
 	return returnValue;

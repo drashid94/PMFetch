@@ -10,16 +10,54 @@ uint32_t sensorPinSetup(uint32_t lGpioHandle)
 
 uint32_t get_x_sensor_value(bool &value)
 {
-    value = lgGpioRead(lgGpioHandle, X_CONTACT_SENSOR_PIN);
+
+    int count = 0;
+    while( count < 3){
+        value = lgGpioRead(lgGpioHandle, X_CONTACT_SENSOR_PIN);
+        if (value)
+        {
+            count++;
+        }
+        else{
+            break;
+        }
+    };
+    
     return SUCCESS;
 }
+
 uint32_t get_y_sensor_value(bool &value)
 {
-    value = lgGpioRead(lgGpioHandle, Y_CONTACT_SENSOR_PIN);
+
+    int count = 0;
+    while( count < 3){
+        value = lgGpioRead(lgGpioHandle, Y_CONTACT_SENSOR_PIN);
+        if (value)
+        {
+            count++;
+        }
+        else{
+            break;
+        }
+    };
+    
     return SUCCESS;
 }
+
 uint32_t get_z_sensor_value(bool &value)
 {
-    value = lgGpioRead(lgGpioHandle, Z_CONTACT_SENSOR_PIN);
+    int count = 0;
+    while( count < 3){
+        value = lgGpioRead(lgGpioHandle, Z_CONTACT_SENSOR_PIN);
+        if (value)
+        {
+            count++;
+        }
+        else{
+            break;
+        }
+    };
+    
     return SUCCESS;
+        
 }
