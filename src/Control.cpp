@@ -308,9 +308,10 @@ uint32_t Control::bcodeControl(void)
             grid.returnToShelf();
             cout << "Return sequence complete\n";
         }
-        else if(bcodeCommand == "A-0060-Z")
+        else if(bcodeCommand == "A-0060-Z") // Force return
         {
-
+            grid.forceReturn();
+            cout << "Force return complete\n";
         }
         else if(bcodeCommand == "A-0070-Z")
         {

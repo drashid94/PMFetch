@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <fstream>
 
 struct GridUnit
 {
@@ -41,21 +42,21 @@ public:
 	uint32_t retractZ();
 	uint32_t containerLiftOrPlace(bool lift);
 	uint32_t moveXY(ShelfCoord coordCurr, ShelfCoord coordDest, bool pollingOn);
-	uint32_t returnToShelfByBarcode (string barcode); // search grid by name and call returntoshelf
+	uint32_t returnToShelfByBarcode (string barcode,  bool force); // search grid by name and call returntoshelf
 	uint32_t fetchFromShelfByBarcode (string barcode); // search grid by name and call fetchFromShelf
 	uint32_t fetchFromShelfByName (string medicationName); // search grid by name and call fetchfromshelf
 	uint32_t returnToShelf(const Medicine& medication); // calls move from motor unit
 	uint32_t fetchFromShelf(const Medicine& medication); // calls move from motor unit
 	uint32_t returnToShelf();
-	uint32_t getBarcode(string& barcode);
+	uint32_t forceReturn(); // return during recovery mode or if item was manually fetched
 
 
 private:
 
-	uint32_t addNewItemToGrid(GridUnit * gridUnit);
-	uint32_t addNewItemToGrid(string barcode);
-	uint32_t permanantlyRemoveFromGrid(Medicine * med);
-	uint32_t updateGrid(ShelfCoord shelfCoord, bool returning);
+	uint32_t addNewItemToGrid(GridUnit * gridUnit); // grid update
+	uint32_t addNewItemToGrid(string barcode); // grid update
+	uint32_t permanantlyRemoveFromGrid(Medicine * med); // grid update
+	uint32_t updateGrid(ShelfCoord shelfCoord, bool returning); // grid update
 	uint32_t getMedFromBarcode(string barcode, Medicine *med);
 	uint32_t getEmptyGridUnit(GridUnit * gridUnit);
 	//void *getBarcode(string & barcode);
@@ -73,7 +74,9 @@ public:
 	Motor* motorUnit;
 	const std::vector<Medicine>* medicineDatabase; // populated by calling getAllMedicines() from medicine database?
 	// Medicine gridContainers[gridMaxY][gridMaxX]; //TODO adjust size based on actual number of rows and columns in shelf
-	std::vector<std::vector<GridUnit>> gridContainers;
+	std::vector<std::vector<GridUnit>> gridContainers; // grid update
+	std::string gridfile = "grid.txt";
+	void serializeGrid();
 };
 
 #endif // GRID_H
