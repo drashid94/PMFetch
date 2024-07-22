@@ -191,6 +191,10 @@ uint32_t Motor::pinSetup()
     if(status != LG_OKAY) { EXIT_FUNCTION(returnValue, ERROR_MOTOR_GPIO_CLAIM_OUT); }
     status = lgGpioClaimInput(h, 0, Z_CONTACT_SENSOR_PIN);
     if(status != LG_OKAY) { EXIT_FUNCTION(returnValue, ERROR_MOTOR_GPIO_CLAIM_OUT); }
+    status = lgGpioClaimOutput(h, 0, LED_GREEN_PIN, 0);
+    if(status != LG_OKAY) { EXIT_FUNCTION(returnValue, ERROR_MOTOR_GPIO_CLAIM_OUT); }
+    status = lgGpioClaimOutput(h, 0, LED_RED_PIN, 0);
+    if(status != LG_OKAY) { EXIT_FUNCTION(returnValue, ERROR_MOTOR_GPIO_CLAIM_OUT); }
     EXIT_POINT
     return returnValue;
 

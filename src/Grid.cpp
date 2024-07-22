@@ -611,7 +611,7 @@ uint32_t Grid::forceReturn()
 		string barcode;
 		moveXY(currentCoord, returnLocations[i], false);
 
-		uint32_t retval = getInputBarcode(&barcode, 5, true, false); //confirm last 2 arguments
+		uint32_t retval = getInputBarcode(&barcode, 1, true, false); //confirm last 2 arguments
 		if(retval == SUCCESS)
 		{
 			std::cout << "BARCODE: " << barcode << "\n";			
@@ -624,7 +624,7 @@ uint32_t Grid::forceReturn()
 		{
 			std::cout << "Container not found\nMove to next return location\n";
 		}
-		usleep(5*1000000);
+		usleep(1000000);
 	}
 
 	return returnValue;

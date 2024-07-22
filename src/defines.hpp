@@ -23,6 +23,26 @@
 #define NUM_RETURN_LOCATIONS 3
 #define FETCH_QUEUE_MAX_SIZE 36
 
+//Pins
+// Define motor pin constants
+#define X_MOTOR_PIN 13
+#define Y_MOTOR_PIN 16
+#define Z_MOTOR_PIN 26
+
+// Define motor direction pin constants
+#define X_MOTOR_DIR_PIN 19
+#define Y_MOTOR_DIR_PIN 20
+#define Z_MOTOR_DIR_PIN 21
+
+//LED GPIO PINS
+#define LED_GREEN_PIN 7
+#define LED_RED_PIN 8
+
+// Contact Sensor Pins
+#define X_CONTACT_SENSOR_PIN 5
+#define Y_CONTACT_SENSOR_PIN 6
+#define Z_CONTACT_SENSOR_PIN 12
+
 struct ShelfCoord
 {
     int x;
