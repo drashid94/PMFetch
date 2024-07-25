@@ -12,7 +12,7 @@ uint32_t get_x_sensor_value(bool &value)
 {
 
     int count = 0;
-    while( count < 3){
+    while( count < 2){
         value = lgGpioRead(lgGpioHandle, X_CONTACT_SENSOR_PIN);
         if (value)
         {
@@ -30,7 +30,7 @@ uint32_t get_y_sensor_value(bool &value)
 {
 
     int count = 0;
-    while( count < 3){
+    while( count < 2){
         value = lgGpioRead(lgGpioHandle, Y_CONTACT_SENSOR_PIN);
         if (value)
         {
@@ -47,7 +47,7 @@ uint32_t get_y_sensor_value(bool &value)
 uint32_t get_z_sensor_value(bool &value)
 {
     int count = 0;
-    while( count < 3){
+    while( count < 2){
         value = lgGpioRead(lgGpioHandle, Z_CONTACT_SENSOR_PIN);
         if (value)
         {

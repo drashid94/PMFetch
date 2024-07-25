@@ -54,13 +54,13 @@ Grid::Grid(Motor* motorUnitIn, MedicineDatabase* medicineDatabaseIn, int xdimens
 	returnLocations[0] = {0, GRID_UNIT_MAX_ROW-1};
 	returnLocations[1] = {1, GRID_UNIT_MAX_ROW-1};
 	returnLocations[2] = {2, GRID_UNIT_MAX_ROW-1}; 
-	// returnLocations[3] = {3, GRID_UNIT_MAX_ROW-1};
-	// returnLocations[4] = {4, GRID_UNIT_MAX_ROW-1};
-	// returnLocations[5] = {5, GRID_UNIT_MAX_ROW-1}; // All bottom row
+	returnLocations[3] = {3, GRID_UNIT_MAX_ROW-1};
+	returnLocations[4] = {4, GRID_UNIT_MAX_ROW-1};
+	returnLocations[5] = {5, GRID_UNIT_MAX_ROW-1}; // All bottom row
     // Calculate pulses per unit for each dimension
-	pulsesPerUnitX = 1155;
+	pulsesPerUnitX = 4620; // keith chnaged this from 1155 to 4620
 	pulsesPerUnitY = 13150;
-	pulsesPerLiftY = 2500;
+	pulsesPerLiftY = 2180;
 	pulsesPerExtendZ = 8500;  // keith chnaged this from 4250 to 8500
 
 	gridContainers.resize(numUnitsY);
@@ -578,7 +578,7 @@ uint32_t Grid::fetchFromShelf(const Medicine& medication) {
 			moveXY(currentCoord, medication.coord, false);
 			extendZ();
 			containerLiftOrPlace(false);
-			extendZ();
+			retractZ();
 			moveXY(currentCoord, {0,0}, false);
 		}
 	}
@@ -594,7 +594,7 @@ uint32_t Grid::fetchFromShelf(const Medicine& medication) {
 
 	//Inform gridContainers that this medicine has been taken
 	updateGrid(medication.coord, false);
-	moveXY(currentCoord, {0,0}, true);
+	moveXY(currentCoord, {currentCoord.x,currentCoord.y-2}, true); //move one up
 	serializeGrid();
 
 	return returnValue;

@@ -17,10 +17,10 @@
 #define RETRACT 0
 
 #define Y_MOTOR_SPEED 200
-#define X_MOTOR_SPEED 1000
-#define Z_MOTOR_SPEED 350	
+#define X_MOTOR_SPEED 250  // keith changed this from 1000 to 250
+#define Z_MOTOR_SPEED 250	
 
-#define NUM_RETURN_LOCATIONS 3
+#define NUM_RETURN_LOCATIONS 5
 #define FETCH_QUEUE_MAX_SIZE 36
 
 //Pins
@@ -35,7 +35,7 @@
 #define Z_MOTOR_DIR_PIN 21
 
 //LED GPIO PINS
-#define LED_GREEN_PIN 7
+#define LED_GREEN_PIN 25
 #define LED_RED_PIN 8
 
 // Contact Sensor Pins

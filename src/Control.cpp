@@ -56,7 +56,7 @@ uint32_t Control::calibrate(void)
     motorUnit.move(Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, DOWN, 10600, 200, false, &ptid);
     pthread_join(ptid, NULL);
     pthread_t ptidx;
-    motorUnit.move(X_MOTOR_PIN, X_MOTOR_DIR_PIN, RIGHT, 30, 1000, false, &ptidx);
+    motorUnit.move(X_MOTOR_PIN, X_MOTOR_DIR_PIN, RIGHT, 200, 250, false, &ptidx);
     pthread_join(ptidx, NULL);
 
     grid.currentCoord = {0,0};
@@ -109,35 +109,79 @@ uint32_t Control::bcodeControl(void)
     //     grid.retractZ();
     // }
 
+    // for(;;){
+    //     readyForInput(false);
+    //     usleep(1000000);
+    //     readyForInput(true);
+    //     usleep(1000000);
+    // }
     // for(;;){}
 
 
-   //   bool contactSens;
-   //   for(;;)
-   // {
-   //       get_y_sensor_value(contactSens);
-   //       std::cout << contactSens << "\n";
-   //   }
-   //   for(;;){}
-    // grid.moveXY({0,0}, {0,1}, false);
+
+    // bool contactSens;
     // for(;;)
     // {
-    //     grid.moveXY({0,0}, {0,1}, false);
-    //     usleep(1000000);
-    //     grid.moveXY({0,1}, {0,0}, false);
-    //     usleep(1000000);
-    //     // grid.moveXY({0,0}, {0,1}, false);
-    //     // usleep(1000000);
-    //     // grid.moveXY({1,0}, {0,0}, false);
-    //     // usleep(1000000);
+    //      get_y_sensor_value(contactSens);
+    //      std::cout << contactSens << "\n";
+    // }
+   //   for(;;){}
+    // grid.moveXY({0,0}, {4,3}, false);
+    // usleep(5000000);
+    // // //for(;;){}
+    // for(;;)
+    // {
+    //     grid.moveXY({4,3}, {3,3}, false);
+    //     // grid.extendZ();
+    //     // grid.retractZ();
+    //     usleep(5000000);
+    //     grid.moveXY({3,3}, {2,3}, false);
+    //     // grid.extendZ();
+    //     // grid.retractZ();
+    //     usleep(5000000);
+    //     grid.moveXY({2,3}, {1,3}, false);
+    //     // grid.extendZ();
+    //     // grid.retractZ();
+    //     usleep(5000000);
+    //     grid.moveXY({1,3}, {0,3}, false);
+    //     // grid.extendZ();
+    //     // grid.retractZ();
+    //     usleep(5000000);
+    //     grid.moveXY({0,3}, {1,3}, false);
+    //     // grid.extendZ();
+    //     // grid.retractZ();
+    //     usleep(5000000);
+    //     grid.moveXY({1,3}, {2,3}, false);
+    //     // grid.extendZ();
+    //     // grid.retractZ();
+    //     usleep(5000000);
+    //     grid.moveXY({2,3}, {3,3}, false);
+    //     // grid.extendZ();
+    //     // grid.retractZ();
+    //     usleep(5000000);
+    //     grid.moveXY({3,3}, {4,3}, false);
+    //     // grid.extendZ();
+    //     // grid.retractZ();
+    //     usleep(5000000);
     // }
 
     // string barcodeTest;
     // grid.getInputBarcode(&barcodeTest, 5);
     // cout << "Barcode: " << barcodeTest << "\n";
 
-    // grid.moveXY({0,0}, {0,1}, false);
+    // grid.moveXY({0,0}, {0,3}, false);
+    //grid.extendZ();
+
+    // pthread_t ptidx;
+    // motorUnit.move(X_MOTOR_PIN, X_MOTOR_DIR_PIN, RIGHT, 120, 250, false, &ptidx);
+    // pthread_join(ptidx, NULL);
+
+    // grid.retractZ();
+    // grid.moveXY({0,0}, {4,0}, false);
     // grid.extendZ();
+
+
+    //  for(;;){}
     // grid.moveXY({0,0}, {2,0}, false);
     // grid.retractZ();
     // pthread_t ptid;
@@ -205,12 +249,151 @@ uint32_t Control::bcodeControl(void)
 
     // for(;;)
     // {
-    //     liftPlaceRoutine();
-    //     grid.moveXY({4,3}, {0,3}, false);
+    //     //liftPlaceRoutine();
+    //     grid.moveXY({0,0}, {4,3}, false);
     //     usleep(3000000);
-    //     liftPlaceRoutine();
+    //     // liftPlaceRoutine();
+    //     // usleep(3000000);
+    //     grid.moveXY({4,3}, {0,0}, false);
+    //     usleep(3000000);        
+    // }
+
+
+    // for(;;)
+    // {
+    //     grid.moveXY({0,0}, {4,0}, false);
     //     usleep(3000000);
-    //     grid.moveXY({0,3}, {4,3}, false);        
+    //     grid.moveXY({4,0}, {0,0}, false);
+    //     usleep(3000000);        
+    // }
+
+    // for(;;)
+    // {
+    //     //liftPlaceRoutine();
+    //     grid.moveXY({0,0}, {0,3}, false);
+    //     usleep(3000000);
+    //     // liftPlaceRoutine();
+    //     // usleep(3000000);
+    //     grid.moveXY({0,3}, {4,3}, false);
+    //     usleep(3000000);
+    //     grid.moveXY({4,3}, {4,0}, false);
+    //     usleep(3000000);
+    //     grid.moveXY({4,0}, {0,0}, false);
+    //     usleep(3000000);        
+    // }
+
+    //  grid.moveXY({0,0}, {0,3}, false);
+    // // usleep(3000000);
+    // // for(;;){}
+    //  grid.extendZ();
+    //  grid.retractZ();
+     // for(;;){}
+
+    // grid.retractZ();
+    // calibrate();
+    // grid.moveXY({0,0}, {0,3}, false);    
+    // for(;;)
+    // {
+    //     liftPlaceRoutine();
+    //     grid.moveXY({0,0}, {1,0}, false);
+    //     usleep(3000000);
+    //     // grid.extendZ();
+    //     // grid.retractZ();
+    //     liftPlaceRoutine();
+    //     grid.moveXY({1,0}, {2,0}, false);
+    //     usleep(3000000);
+    //     // grid.extendZ();
+    //     // grid.retractZ();
+    //     liftPlaceRoutine();
+    //     grid.moveXY({2,0}, {3,0}, false);
+    //     usleep(3000000);
+    //     // grid.extendZ();
+    //     // grid.retractZ();
+    //     liftPlaceRoutine();
+    //     grid.moveXY({3,0}, {4,0}, false);
+    //     usleep(3000000);
+    //     // grid.extendZ();
+    //     // grid.retractZ();
+    //     liftPlaceRoutine();
+    //     grid.moveXY({4,0}, {3,0}, false);
+    //     usleep(3000000);
+    //     // grid.extendZ();
+    //     // grid.retractZ();
+    //     liftPlaceRoutine();
+    //     grid.moveXY({3,0}, {2,0}, false);
+    //     usleep(3000000);
+    //     // grid.extendZ();
+    //     // grid.retractZ();
+    //     liftPlaceRoutine();
+    //     grid.moveXY({2,0}, {1,0}, false);
+    //     usleep(3000000);
+    //     // grid.extendZ();
+    //     // grid.retractZ();
+    //     liftPlaceRoutine();
+    //     grid.moveXY({1,0}, {0,0}, false);
+    //     usleep(3000000); 
+    //     // grid.extendZ();
+    //     // grid.retractZ();
+    //     liftPlaceRoutine();    
+    // }
+
+    // for(;;)
+    // {
+    //     grid.moveXY({0,0}, {0,1}, false);
+    //     usleep(3000000);
+    //     grid.moveXY({0,1}, {1,1}, false);
+    //     usleep(3000000);
+    //     grid.moveXY({1,1}, {1,2}, false);
+    //     usleep(3000000);
+    //     grid.moveXY({1,2}, {2,2}, false);
+    //     usleep(3000000);
+    //     grid.moveXY({2,2}, {2,3}, false);
+    //     usleep(3000000);
+    //     grid.moveXY({2,3}, {3,3}, false);
+    //     usleep(3000000); 
+    //     grid.moveXY({3,3}, {4,3}, false);
+    //     usleep(3000000);
+    //     grid.moveXY({4,3}, {3,3}, false);
+    //     usleep(3000000);
+    //     grid.moveXY({3,3}, {2,3}, false);
+    //     usleep(3000000);
+    //     grid.moveXY({2,3}, {2,2}, false);
+    //     usleep(3000000);
+    //     grid.moveXY({2,2}, {1,2}, false);
+    //     usleep(3000000);
+    //     grid.moveXY({1,2}, {1,1}, false);
+    //     usleep(3000000);
+    //     grid.moveXY({1,1}, {0,1}, false);
+    //     usleep(3000000); 
+    //     grid.moveXY({0,1}, {0,0}, false);
+    //     usleep(3000000);
+
+    // }
+
+    
+
+    // grid.moveXY({0,0}, {0,3}, false);
+    // for(;;){}
+
+    // for(;;)
+    // {
+    //     //liftPlaceRoutine();
+    //     grid.moveXY({0,0}, {1,0}, false);
+    //     usleep(3000000);
+    //     grid.moveXY({1,0}, {2,0}, false);
+    //     usleep(3000000);
+    //     grid.moveXY({2,0}, {3,0}, false);
+    //     usleep(3000000);
+    //     grid.moveXY({3,0}, {4,0}, false);
+    //     usleep(3000000);
+    //     grid.moveXY({4,0}, {3,0}, false);
+    //     usleep(3000000);
+    //     grid.moveXY({3,0}, {2,0}, false);
+    //     usleep(3000000); 
+    //     grid.moveXY({2,0}, {1,0}, false);
+    //     usleep(3000000);
+    //     grid.moveXY({1,0}, {0,0}, false);
+    //     usleep(3000000);         
     // }
 
     
@@ -239,22 +422,27 @@ uint32_t Control::bcodeControl(void)
     // grid.moveXY({1,0}, {0,0}, false);
     //grid.extendZ();
     // // liftPlaceRoutine();
-    //for(;;){ } 
+    // grid.moveXY({0,0}, {0,3}, false );
+    // grid.extendZ();
+    // grid.moveXY({0,0}, {4,0}, false);
+    // for(;;){ } 
 
-
+    readyForInput(false);
     std::cout << "Initial Calibration\n";
     calibrate();
     std::cout << "Calibration complete!\n";
-    readyForInput(true);
     std::string bcodeCommand;
-    readyForInput(false);
     
     for(;;)
     {
+        
         std::cout << "Please scan barcodes to begin\n";
+        usleep(2000000);
+        readyForInput(true);
+        // std::cin >> bcodeCommand;
+        grid.getInputBarcode(&bcodeCommand, 5, false, false);
 
-
-        std::cin >> bcodeCommand;
+        readyForInput(false);
 
         /* Setting up */
         if(bcodeCommand == "A-0010-Z")
