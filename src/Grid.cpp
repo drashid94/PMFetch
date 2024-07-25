@@ -112,11 +112,11 @@ void Grid::printGrid()
 			cout << "Column: " << col << "\n";
 			if(!gu.occupied)
 			{
-				printf("Space not occupied\n");
+				std::cout << "Space not occupied\n";
 				col++;
 				continue;		
 			}
-			printf("Occupied\n");
+			std::cout < "Occupied\n";
 			MedicineDatabase::medPrint(&gu.med);
 			col++;
 			cout << "\n";
@@ -312,11 +312,11 @@ uint32_t Grid::shelfSetup() {
 		if(valid) 
 		{
 			addNewItemToGrid(&gridUnit);
-			printf("Item Added to Grid\n");
+			std::cout << "Item Added to Grid\n";
 		}
 		else
 		{
-			printf("Medicine is invalid\n");
+			std::cout << "Medicine is invalid\n";
 		}
 
 		int exit = 0;

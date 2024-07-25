@@ -81,7 +81,7 @@ uint32_t Control::bcodeControl(void)
 
     if (motorUnit.pinSetup() != 0)
     {
-        printf("Error: motor setup returned non-zero\n");
+        std::cout << "Error: motor setup returned non-zero\n";
         returnValue = 1;
         return returnValue;
     }
@@ -236,7 +236,8 @@ uint32_t Control::bcodeControl(void)
         std::cout << "Please scan barcodes to begin\n";
 
 
-        std::cin >> bcodeCommand;
+        // std::cin >> bcodeCommand;
+        grid.getInputBarcode(&bcodeCommand, 5000, false, false);
 
         /* Setting up */
         if(bcodeCommand == "A-0010-Z")
