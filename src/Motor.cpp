@@ -360,7 +360,47 @@ static void motorFlatRampDown(MovementInfo * movementInfo)
 
 void *moveFuncFlat(void * moveParams)
 {
-    
+    MovementInfo *movementInfo;
+    movementInfo = (MovementInfo*)moveParams;
+    uint32_t motorPin = movementInfo->motorPin;     
+    uint32_t pulsesTotal = movementInfo->pulses;
+    uint32_t motorSpeed = movementInfo->motorSpeed;
+    bool pollSensor = movementInfo->pollSensor;
+    uint32_t pollCounter = 0;
+
+    uint32_t rampPulses = 25;
+
+    motorFlatRampUp(movementInfo);
+
+    if(movementInfo->sensorPushed) pthread_exit(NULL);
+
+    for(uint32_t i = 0; i < pulsesTotal - 2*rampPulses; i++)
+    {
+        if(pollSensor && pollCounter > 4)
+        {
+            bool contactVal = 0;
+            if(motorPin == X_MOTOR_PIN)
+                get_x_sensor_value(contactVal);
+            if(motorPin == Y_MOTOR_PIN)
+                get_y_sensor_value(contactVal);
+            if(motorPin == Z_MOTOR_PIN)
+                get_z_sensor_value(contactVal);
+            if(contactVal)
+            {
+                // std::cout << "Contact Sensor on " << ((motorPin == 13) ? "x" : "y") << " pushed\nExiting movement function\n";
+                pthread_exit(NULL);
+            }
+            pollCounter = 0;
+        }
+        lgGpioWrite(lgGpioHandle, motorPin, 1);
+        usleep(motorSpeed);
+        lgGpioWrite(lgGpioHandle, motorPin, 0);
+        usleep(motorSpeed);
+        pollCounter++;
+    }
+    motorFlatRampDown(movementInfo);
+    pthread_exit(NULL);
+
 }
 
 void *moveFunc(void * moveParams)
