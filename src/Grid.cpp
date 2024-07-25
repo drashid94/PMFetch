@@ -630,11 +630,15 @@ uint32_t Grid::forceReturn()
 	return returnValue;
 }
 
-// Implementation of serializeGrid outside the Grid class
+std::string BoolToString(bool b)
+{
+  return b ? "true" : "false";
+}
+
 void Grid::serializeGrid() {
   std::ofstream file(gridfile);
   if (!file.is_open()) {
-    // Handle file opening error
+    // file opening error
     return;
   }
 
@@ -646,12 +650,90 @@ void Grid::serializeGrid() {
   for (auto & gridRow: gridContainers)
   {
 	for (const GridUnit& unit : gridRow) {
+		if (unit.occupied != TRUE)
+		{
+			continue;
+		}
 		// Serialize Medicine data
+		file << std::to_string(unit.med.coord.x) << std::endl;
+		file << std::to_string(unit.med.coord.y) << std::endl;
 		file << unit.med.medication_name << std::endl;
 		file << unit.med.barcode << std::endl;
-		file << unit.med.onShelf << std::endl;
-		file << unit.occupied << std::endl;
+		file << BoolToString(unit.med.onShelf) << std::endl;
+		file << BoolToString(unit.occupied) << std::endl;
 	}
   }
+
   file.close();
 }
+
+void Grid::recoverGrid() {
+	std::ifstream file(gridfile);
+	if (!file.is_open()) {
+		// file opening error
+		return;
+	}
+
+	// Clear the existing gridUnits vector before recovering
+	int numUnitsY = gridContainers.size();
+	int numUnitsX = gridContainers[0].size();
+
+	gridContainers.clear();
+	gridContainers.resize(numUnitsY);
+	for(uint32_t i = 0; i < gridContainers.size(); i++)
+	{
+		gridContainers[i].resize(numUnitsX);
+	}
+
+	while(file.peek()!=EOF) {
+		GridUnit unit;
+		int unitX, unitY;
+		string name, barcode;
+		bool onshelf, occupied;
+
+		string inputBuffer;
+
+		std::getline(file, inputBuffer);	// X coordinate
+		unitX = std::stoi(inputBuffer);
+		std::getline(file, inputBuffer);	// Y coordinate
+		unitY = std::stoi(inputBuffer);
+		std::getline(file, name);			// medication_name
+		std::getline(file, barcode);		// barcode
+		std::getline(file, inputBuffer);	// onShelf
+		onshelf = (inputBuffer == "true" ? TRUE : FALSE);
+		std::getline(file, inputBuffer);	// occupied
+		occupied = (inputBuffer == "true" ? TRUE : FALSE);
+
+		gridContainers[unitX][unitY].med.medication_name = name;
+		gridContainers[unitX][unitY].med.barcode = barcode;
+		gridContainers[unitX][unitY].med.coord.x = unitX;
+		gridContainers[unitX][unitY].med.coord.y = unitY;
+		gridContainers[unitX][unitY].med.onShelf = onshelf;
+		gridContainers[unitX][unitY].occupied = occupied;
+	}
+
+  file.close();
+}
+
+/*
+gridunit x
+gridunit y
+name
+barcode
+onshelf
+occupied
+
+struct GridUnit
+{
+	Medicine med;
+	bool occupied;
+};
+
+struct Medicine {
+  string medication_name;
+  string barcode;
+  ShelfCoord coord;
+  bool onShelf;
+  // maybe weight, quantity, empty bool
+};
+*/

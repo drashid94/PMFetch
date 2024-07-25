@@ -77,6 +77,7 @@ public:
 	std::vector<std::vector<GridUnit>> gridContainers; // grid update
 	std::string gridfile = "grid.txt";
 	void serializeGrid();
+	void recoverGrid();
 };
 
 #endif // GRID_H

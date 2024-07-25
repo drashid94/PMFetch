@@ -77,6 +77,8 @@ void Control::liftPlaceRoutine(void)
 
 uint32_t Control::bcodeControl(void)
 {
+    grid.recoverGrid(); // Recover the grid from gridfile if it exists
+
     uint32_t returnValue = SUCCESS;
 
     if (motorUnit.pinSetup() != 0)
