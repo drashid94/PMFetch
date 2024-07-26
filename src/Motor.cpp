@@ -69,6 +69,8 @@ static void motorRampUp(MovementInfo *movementInfo)
 
 static void motorFlatRampUp(MovementInfo * movementInfo)
 {
+
+    uint32_t motorPin = movementInfo->motorPin;
     bool pollSensor = movementInfo->pollSensor;
     for(int i = 0; i < 5; i++)
     {
@@ -236,7 +238,7 @@ static void motorRampDown(MovementInfo * movementInfo)
 static void motorFlatRampDown(MovementInfo * movementInfo)
 {
     bool pollSensor = movementInfo->pollSensor;
-    uint32_t motorSpeed = movementInfo.motorSpeed;
+    uint32_t motorPin = movementInfo->motorPin;
     for(int i = 0; i < 5; i++)
     {
         if(pollSensor)
@@ -454,7 +456,7 @@ uint32_t Motor::move(uint32_t motorPin, uint32_t motorDirPin, uint32_t direction
     // std::cout << "Motor: Pulses: " << pulses << "\n";
     // std::cout << "Creating thread\n";
     MovementInfo *mInfo = new MovementInfo{motorPin, motorDirPin, direction, pulses, motorSpeed, pollSensor, false};
-    pthread_create(ptid, NULL, &moveFunc, (void*)mInfo);
+    pthread_create(ptid, NULL, &moveFuncFlat, (void*)mInfo);
 
     return SUCCESS;
 }

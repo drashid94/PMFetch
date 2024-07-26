@@ -31,6 +31,7 @@ public:
 	uint32_t shelfSetupByBarcode();
 	uint32_t deleteFromShelf(string barcode);
 	uint32_t getInputBarcode(std::string * barcode, int timeoutInSeconds, bool liftAndPlace, bool isFetch);
+	uint32_t getInputBarcodeComPort(std::string * barcode, int timeoutInSeconds, bool liftAndPlace, bool isFetch);
 	void printGrid();
 
 	bool IsSlotEmpty(ShelfCoord c); // include some error check to ensure x and y are within bounds

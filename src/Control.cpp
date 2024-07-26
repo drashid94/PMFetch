@@ -124,7 +124,7 @@ uint32_t Control::bcodeControl(void)
     // bool contactSens;
     // for(;;)
     // {
-    //      get_y_sensor_value(contactSens);
+    //      get_x_sensor_value(contactSens);
     //      std::cout << contactSens << "\n";
     // }
    //   for(;;){}
@@ -426,7 +426,11 @@ uint32_t Control::bcodeControl(void)
     // // liftPlaceRoutine();
     // grid.moveXY({0,0}, {0,3}, false );
     // grid.extendZ();
-    // grid.moveXY({0,0}, {4,0}, false);
+    // grid.moveXY({0,0}, {1,0}, true);
+    // grid.moveXY({0,2}, {0,0}, true);
+    // string bcode;
+    // grid.getInputBarcodeComPort(&bcode, 10, false, false);
+
     // for(;;){ } 
 
     readyForInput(false);
@@ -442,7 +446,7 @@ uint32_t Control::bcodeControl(void)
         usleep(2000000);
         readyForInput(true);
         // std::cin >> bcodeCommand;
-        grid.getInputBarcode(&bcodeCommand, 5, false, false);
+        grid.getInputBarcode(&bcodeCommand, 50, false, false);
 
         readyForInput(false);
 

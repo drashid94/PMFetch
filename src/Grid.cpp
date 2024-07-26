@@ -12,6 +12,69 @@
 #include <string.h>
 #include <iostream>
 #include <ncurses.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <termios.h>
+#include <unistd.h>
+
+
+uint32_t Grid::getInputBarcodeComPort(std::string * barcode, int timeoutInSeconds, bool liftAndPlace, bool isFetch)
+{
+	// std::cout << "Scanning..\n";
+	// int fd = open("/dev/hidraw0", O_RDONLY);
+
+	// if(fd < 0)
+	// {
+	// 	std::cout << "ERROR OPENING PORT\n";
+	// }
+
+	// while(1)
+	// {
+	// 	char readBuf[1024];
+	// 	int n  = read(fd, &readBuf, sizeof(readBuf));
+	// 	if(n < 0) cout << "Error reading\n";
+	// 	cout << "readBuf:\n" << readBuf << "\n";asd
+	// 	usleep(1000000);
+	// }
+	// struct termios tty;
+
+	// if(tcgetattr(serial_port, &tty) != 0) {
+    // 	printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
+	// }
+
+	// tty.c_cflag &= ~PARENB;
+	// tty.c_cflag &= ~CSTOPB;
+	// tty.c_cflag &= ~CSIZE;
+	// tty.c_cflag |= CS8;
+	// tty.c_cflag &= ~CRTSCTS;
+	// tty.c_lflag &= ~ICANON;
+	// tty.c_lflag &= ~ECHO; // Disable echo
+	// tty.c_lflag &= ~ECHOE; // Disable erasure
+	// tty.c_lflag &= ~ECHONL; 
+	// tty.c_lflag &= ~ISIG;
+	// tty.c_iflag &= ~(IXON | IXOFF | IXANY);
+	// tty.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL);
+	// tty.c_cc[VTIME] = 5;    // Wait for up to 1s (10 deciseconds), returning as soon as any data is received.
+	// tty.c_cc[VMIN] = 0;
+	// cfsetispeed(&tty, B9600);
+	// cfsetospeed(&tty, B9600);
+
+	// char read_buf[256];
+	// while(1)
+	// {
+	// 	int n = read(serial_port, &read_buf, sizeof(read_buf));
+	// 	if(n < 0)
+	// 	{
+	// 		std::cout << "No scan detected\n";
+	// 	}
+	// 	std::cout << "read_buf:\n";
+	// 	std::cout << read_buf << "\n";
+	// 	usleep(1000000);
+	// }
+	
+
+
+}
 
 uint32_t Grid::getInputBarcode(std::string * barcode, int timeoutInSeconds, bool liftAndPlace, bool isFetch)
 {    
@@ -116,7 +179,7 @@ void Grid::printGrid()
 				col++;
 				continue;		
 			}
-			std::cout < "Occupied\n";
+			std::cout << "Occupied\n";
 			MedicineDatabase::medPrint(&gu.med);
 			col++;
 			cout << "\n";
@@ -274,7 +337,7 @@ uint32_t Grid::deleteFromShelf(string barcode)
 		}
 		else
 		{
-			gridContainers[med.coord.x][med.coord.y].occupied = false;
+			gridContainers[med.coord.y][med.coord.x].occupied = false;
 			serializeGrid();
 		}
 	}
@@ -365,6 +428,13 @@ uint32_t Grid::shelfSetupByBarcode()
 		uint32_t retval = getInputBarcode(&barcode, 1, true, false);
 		if(retval == SUCCESS)
 		{
+			if(isMedValid(barcode) == SUCCESS)
+			{
+				std::cout << "Barcode is on shelf already\n";
+				returnToShelfByBarcode(barcode, false);
+				continue;
+			}
+
 			std::cout << "Container detected\nLocate empty spot on shelf\n";
 			std::cout << "BARCODE: " << barcode << "\n";			
 			if(addNewItemToGrid(barcode) != SUCCESS)
@@ -687,6 +757,7 @@ void Grid::recoverGrid() {
 
 	while(file.peek()!=EOF) {
 		GridUnit unit;
+		Medicine med;
 		int unitX, unitY;
 		string name, barcode;
 		bool onshelf, occupied;
@@ -704,12 +775,10 @@ void Grid::recoverGrid() {
 		std::getline(file, inputBuffer);	// occupied
 		occupied = (inputBuffer == "true" ? TRUE : FALSE);
 
-		gridContainers[unitX][unitY].med.medication_name = name;
-		gridContainers[unitX][unitY].med.barcode = barcode;
-		gridContainers[unitX][unitY].med.coord.x = unitX;
-		gridContainers[unitX][unitY].med.coord.y = unitY;
-		gridContainers[unitX][unitY].med.onShelf = onshelf;
-		gridContainers[unitX][unitY].occupied = occupied;
+		med = {name, barcode, {unitX, unitY}, onshelf};
+
+		gridContainers[unitY][unitX].med = med;
+		gridContainers[unitY][unitX].occupied = occupied;
 	}
 
   file.close();
