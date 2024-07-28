@@ -45,10 +45,15 @@ public:
 	uint32_t containerLiftOrPlace(bool lift);
 	uint32_t moveXY(ShelfCoord coordCurr, ShelfCoord coordDest, bool pollingOn);
 	uint32_t returnToShelfByBarcode (string barcode,  bool force); // search grid by name and call returntoshelf
-	uint32_t fetchFromShelfByBarcode (string barcode); // search grid by name and call fetchFromShelf
+	uint32_t fetchFromShelfByBarcode (string barcode)
+	{
+		return fetchFromShelfByBarcode(barcode, 0);
+
+	}
+	uint32_t fetchFromShelfByBarcode (string barcode, int returnLocationNum);
 	uint32_t fetchFromShelfByName (string medicationName); // search grid by name and call fetchfromshelf
 	uint32_t returnToShelf(const Medicine& medication); // calls move from motor unit
-	uint32_t fetchFromShelf(const Medicine& medication); // calls move from motor unit
+	uint32_t fetchFromShelf(const Medicine& medication, int returnLocationNum); // calls move from motor unit
 	uint32_t returnToShelf();
 	uint32_t forceReturn(); // return during recovery mode or if item was manually fetched
 

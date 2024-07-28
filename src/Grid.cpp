@@ -1,15 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
 /* Has 'move' function that takes medicine and destination location
 	- searches the MedicineDatabase to find out the inital location of that medicine and calls the 'move' functions from Motor module as necessary
  - Location of meds
@@ -30,63 +18,63 @@
 #include <unistd.h>
 
 
-uint32_t Grid::getInputBarcodeComPort(std::string * barcode, int timeoutInSeconds, bool liftAndPlace, bool isFetch)
-{
-	// std::cout << "Scanning..\n";
-	// int fd = open("/dev/hidraw0", O_RDONLY);
+// uint32_t Grid::getInputBarcodeComPort(std::string * barcode, int timeoutInSeconds, bool liftAndPlace, bool isFetch)
+// {
+// 	// std::cout << "Scanning..\n";
+// 	// int fd = open("/dev/hidraw0", O_RDONLY);
 
-	// if(fd < 0)
-	// {
-	// 	std::cout << "ERROR OPENING PORT\n";
-	// }
+// 	// if(fd < 0)
+// 	// {
+// 	// 	std::cout << "ERROR OPENING PORT\n";
+// 	// }
 
-	// while(1)
-	// {
-	// 	char readBuf[1024];
-	// 	int n  = read(fd, &readBuf, sizeof(readBuf));
-	// 	if(n < 0) cout << "Error reading\n";
-	// 	cout << "readBuf:\n" << readBuf << "\n";asd
-	// 	usleep(1000000);
-	// }
-	// struct termios tty;
+// 	// while(1)
+// 	// {
+// 	// 	char readBuf[1024];
+// 	// 	int n  = read(fd, &readBuf, sizeof(readBuf));
+// 	// 	if(n < 0) cout << "Error reading\n";
+// 	// 	cout << "readBuf:\n" << readBuf << "\n";asd
+// 	// 	usleep(1000000);
+// 	// }
+// 	// struct termios tty;
 
-	// if(tcgetattr(serial_port, &tty) != 0) {
-    // 	printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
-	// }
+// 	// if(tcgetattr(serial_port, &tty) != 0) {
+//     // 	printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
+// 	// }
 
-	// tty.c_cflag &= ~PARENB;
-	// tty.c_cflag &= ~CSTOPB;
-	// tty.c_cflag &= ~CSIZE;
-	// tty.c_cflag |= CS8;
-	// tty.c_cflag &= ~CRTSCTS;
-	// tty.c_lflag &= ~ICANON;
-	// tty.c_lflag &= ~ECHO; // Disable echo
-	// tty.c_lflag &= ~ECHOE; // Disable erasure
-	// tty.c_lflag &= ~ECHONL; 
-	// tty.c_lflag &= ~ISIG;
-	// tty.c_iflag &= ~(IXON | IXOFF | IXANY);
-	// tty.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL);
-	// tty.c_cc[VTIME] = 5;    // Wait for up to 1s (10 deciseconds), returning as soon as any data is received.
-	// tty.c_cc[VMIN] = 0;
-	// cfsetispeed(&tty, B9600);
-	// cfsetospeed(&tty, B9600);
+// 	// tty.c_cflag &= ~PARENB;
+// 	// tty.c_cflag &= ~CSTOPB;
+// 	// tty.c_cflag &= ~CSIZE;
+// 	// tty.c_cflag |= CS8;
+// 	// tty.c_cflag &= ~CRTSCTS;
+// 	// tty.c_lflag &= ~ICANON;
+// 	// tty.c_lflag &= ~ECHO; // Disable echo
+// 	// tty.c_lflag &= ~ECHOE; // Disable erasure
+// 	// tty.c_lflag &= ~ECHONL; 
+// 	// tty.c_lflag &= ~ISIG;
+// 	// tty.c_iflag &= ~(IXON | IXOFF | IXANY);
+// 	// tty.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL);
+// 	// tty.c_cc[VTIME] = 5;    // Wait for up to 1s (10 deciseconds), returning as soon as any data is received.
+// 	// tty.c_cc[VMIN] = 0;
+// 	// cfsetispeed(&tty, B9600);
+// 	// cfsetospeed(&tty, B9600);
 
-	// char read_buf[256];
-	// while(1)
-	// {
-	// 	int n = read(serial_port, &read_buf, sizeof(read_buf));
-	// 	if(n < 0)
-	// 	{
-	// 		std::cout << "No scan detected\n";
-	// 	}
-	// 	std::cout << "read_buf:\n";
-	// 	std::cout << read_buf << "\n";
-	// 	usleep(1000000);
-	// }
+// 	// char read_buf[256];
+// 	// while(1)
+// 	// {
+// 	// 	int n = read(serial_port, &read_buf, sizeof(read_buf));
+// 	// 	if(n < 0)
+// 	// 	{
+// 	// 		std::cout << "No scan detected\n";
+// 	// 	}
+// 	// 	std::cout << "read_buf:\n";
+// 	// 	std::cout << read_buf << "\n";
+// 	// 	usleep(1000000);
+// 	// }
 	
 
 
-}
+// }
 
 uint32_t Grid::getInputBarcode(std::string * barcode, int timeoutInSeconds, bool liftAndPlace, bool isFetch)
 {    
@@ -295,7 +283,7 @@ uint32_t Grid::returnToShelfByBarcode(string barcode, bool force)// search grid 
 	return returnValue;
 }
 
-uint32_t Grid::fetchFromShelfByBarcode(string barcode)
+uint32_t Grid::fetchFromShelfByBarcode(string barcode, int returnLocationNum)
 {
 	uint32_t returnValue = SUCCESS;
 	for(uint32_t x = 0; x < gridContainers.size(); x++)
@@ -307,7 +295,7 @@ uint32_t Grid::fetchFromShelfByBarcode(string barcode)
 				if(gridContainers[x][y].med.barcode == barcode)
 				{
 					std::cout << "Barcode recognized\n";
-					returnValue = fetchFromShelf(gridContainers[x][y].med);
+					returnValue = fetchFromShelf(gridContainers[x][y].med, returnLocationNum);
 				}				
 			}
 		}
@@ -619,12 +607,13 @@ uint32_t Grid::returnToShelf(const Medicine& medication) {
 	return returnValue;
 }
 
-uint32_t Grid::fetchFromShelf(const Medicine& medication) {
+uint32_t Grid::fetchFromShelf(const Medicine& medication, int returnLocationNum) {
 	// check if it exists in gridContainer
 	// calculate pulses and directions
 
 	/* --------------------- pickup at medicine's location ------------------- */
 	uint32_t returnValue = SUCCESS;
+
 
 	returnValue = moveXY(currentCoord, medication.coord, false);
 
@@ -642,7 +631,7 @@ uint32_t Grid::fetchFromShelf(const Medicine& medication) {
 
 	string barcode;
 	//Move to pickup locations
-	for(int i = 0; i < NUM_RETURN_LOCATIONS; i++)
+	for(int i = returnLocationNum; i < NUM_RETURN_LOCATIONS; i++)
 	{
 		string barcode;
 		returnValue = moveXY(currentCoord, returnLocations[i], false);		
@@ -662,6 +651,7 @@ uint32_t Grid::fetchFromShelf(const Medicine& medication) {
 			containerLiftOrPlace(false);
 			retractZ();
 			moveXY(currentCoord, {0,0}, false);
+			return 1;
 		}
 	}
 	

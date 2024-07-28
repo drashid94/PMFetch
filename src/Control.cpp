@@ -446,7 +446,7 @@ uint32_t Control::bcodeControl(void)
         usleep(2000000);
         readyForInput(true);
         // std::cin >> bcodeCommand;
-        grid.getInputBarcode(&bcodeCommand, 50, false, false);
+        grid.getInputBarcode(&bcodeCommand, 100, false, false);
 
         readyForInput(false);
 
@@ -498,7 +498,7 @@ uint32_t Control::bcodeControl(void)
                 continue;
             }
 
-            grid.fetchFromShelfByBarcode(bcode);
+            grid.fetchFromShelfByBarcode(bcode, 0);
             readyForInput(false);
         }
         /* Multi Fetch */
@@ -527,7 +527,7 @@ uint32_t Control::bcodeControl(void)
             std::cout << "Fetch queue has been created\nStarting fetches\n";
             for(int i = 0; i < fetchQueueSize; i++)
             {
-                grid.fetchFromShelfByBarcode(fetchQueue[i]);
+                grid.fetchFromShelfByBarcode(fetchQueue[i], i);
             }
 
         }
