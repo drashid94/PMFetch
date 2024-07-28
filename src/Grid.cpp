@@ -1,3 +1,15 @@
+
+
+
+
+
+
+
+
+
+
+
+
 /* Has 'move' function that takes medicine and destination location
 	- searches the MedicineDatabase to find out the inital location of that medicine and calls the 'move' functions from Motor module as necessary
  - Location of meds
@@ -740,10 +752,11 @@ void Grid::serializeGrid() {
 void Grid::recoverGrid() {
 	std::ifstream file(gridfile);
 	if (!file.is_open()) {
-		// file opening error
+		std::cout << "file not found\n";
 		return;
 	}
 
+	std::cout << "grid file found\n";
 	// Clear the existing gridUnits vector before recovering
 	int numUnitsY = gridContainers.size();
 	int numUnitsX = gridContainers[0].size();

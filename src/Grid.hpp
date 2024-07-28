@@ -1,3 +1,4 @@
+
 #ifndef GRID_H
 #define GRID_H
 
@@ -76,7 +77,7 @@ public:
 	const std::vector<Medicine>* medicineDatabase; // populated by calling getAllMedicines() from medicine database?
 	// Medicine gridContainers[gridMaxY][gridMaxX]; //TODO adjust size based on actual number of rows and columns in shelf
 	std::vector<std::vector<GridUnit>> gridContainers; // grid update
-	std::string gridfile = "grid.txt";
+	std::string gridfile = "/home/drashid/ENSC405W/PMFetch/PMFetch/grid.txt";
 	void serializeGrid();
 	void recoverGrid();
 };
