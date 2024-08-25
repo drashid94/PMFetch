@@ -20,5 +20,5 @@ Enclosure
 
 Software Components
 
-C: The primary programming language used for controlling the Raspberry Pi and interacting with hardware components.
+C++: The primary programming language used for controlling the Raspberry Pi and interacting with hardware components.
 Libraries: -llgpio -pthread -lncurses
