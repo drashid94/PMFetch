@@ -1,6 +1,11 @@
 # PMFetch
 ENSC Capstone Project
 
+[Proof of Concept Demo
+](https://www.youtube.com/watch?v=M3bcscACi1k)
+
+[Prototype Demo](https://www.youtube.com/watch?v=v2NvDxEnM6g)
+
 Project Overview
 The Pharmafetch project is a system designed to automate the retrieval and return of medication in a pharmacy setting. It utilizes a Raspberry Pi as the central controller, along with various sensors, actuators, and software components.
 
