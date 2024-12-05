@@ -7,4 +7,4 @@
 
 /* Grid */
 #define ERROR_GRID_BASE ERROR_MOTOR_BASE + 0x80
-#define ERROR_GRID_...
+#define ERROR_GRID_WHATEVER ERROR_GRID_BASE +0x0

@@ -3,24 +3,27 @@
 
 #include <vector>
 #include <string>
-#include "errors.h"
+#include "errors.hpp"
+#include "defines.hpp"
 using namespace std;
 
 struct Medicine {
   string medication_name;
-  int barcode;
-  int x_coordinate; // x and y coordinate variables will be populated if the medication is on the shelf, otherwise 0
-  int y_coordinate;
-
+  string barcode;
+  ShelfCoord coord;
+  bool onShelf;
   // maybe weight, quantity, empty bool
 };
 
 class MedicineDatabase {
   public:
-    const Medicine& searchMedicine(const string namePartial) const = 0;
-    const Medicine& searchMedicine(const int barcodeUPC) const = 0;
-    vector<Medicine> getAllMedicines() const = 0; // returns allMedicines, likely to the grid
-    ErrorCode loadFromJSON(const string& filename) = 0; // loads allMedicines vector
+    MedicineDatabase();
+    MedicineDatabase (const string& filename); //assuming database is in json format as in software design spec
+    static void medPrint(Medicine * med);
+    const Medicine& searchMedicine(const string namePartial) const;
+    const Medicine& searchMedicine(const int barcodeUPC) const;
+    const vector<Medicine>* getAllMedicines() const; // returns allMedicines, likely to the grid
+    int loadFromJSON(const string& filename); // loads allMedicines vector - assuming database is in json format as in software design spec
 
   private:
     vector<Medicine> allMedicines;

@@ -8,7 +8,7 @@ CXX = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra -pedantic
 
 # Source files (adjust as needed)
-SOURCES = src/Motor.cpp
+SOURCES = src/Control.cpp src/Grid.cpp src/MedicineDatabase.cpp src/Motor.cpp src/Sensors.cpp
 
 # Object files (created during compilation)
 OBJECTS = $(SOURCES:.cpp=.o)
@@ -18,7 +18,7 @@ all: $(EXECUTABLE)
 
 # Rule to link object files into the executable
 $(EXECUTABLE): $(OBJECTS)
-	$(CXX) $(OBJECTS) -o $(EXECUTABLE) -llgpio
+	$(CXX) $(OBJECTS) -o $(EXECUTABLE) -llgpio -pthread -lncurses
 
 # Rule to compile individual .cpp files into .o files
 %.o: %.cpp

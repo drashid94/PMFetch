@@ -4,198 +4,471 @@
 #include "Motor.hpp"
 #include "errors.hpp"
 #include "defines.hpp"
+#include <iostream>
+#include "Sensors.h"
 
-// void move(uint32_t h, uint32_t motorPin, uint32_t motorDirPin, uint32_t direction, uint32_t lift)
-// {
-//     uint32_t pulseCount = 0;
-//     uint32_t motorSpeed = 0;
+static uint32_t lgGpioHandle;
 
-//     if(motorPin == X_MOTOR_PIN) 
-//     { 
-//         motorSpeed = MOTOR_SPEED_X;
-//         pulseCount = PULSES_PER_UNIT_X;
-//     }
-//     else if (motorPin == Y_MOTOR_PIN)
-//     {
-//         if(lift)
-//         {
-//             pulseCount = PULSES_PER_LIFT_Y;
-//         }
-//         else
-//         {            
-//             pulseCount = PULSES_PER_FULL_STEP_Y;
-//         }
-//         motorSpeed = MOTOR_SPEED_Y;
-//     }
-//     else if (motorPin == Z_MOTOR_PIN)
-//     {
-//         motorSpeed = MOTOR_SPEED_Z;
-//         pulseCount = PULSES_PER_UNIT_Z;
-//     }
-
-//     if(motorPin != Z_MOTOR_PIN)
-//     {
-//         lgGpioWrite(h, motorDirPin, direction);
-//         usleep(10);
-//     }
-
-//     for(uint32_t i = 0; i < pulseCount; i++)
-//     {
-//         lgGpioWrite(h, motorPin, 1);
-//         usleep(motorSpeed);
-//         lgGpioWrite(h, motorPin, 0);
-//         usleep(motorSpeed);
-//     }
-// }
-
-
-
-// int main()
-// {
-//     int h = lgGpiochipOpen(4); // open /dev/gpiochip0
-
-//     if (h >= 0)
-//     {
-//         printf("Opened Chip Successfully!\n");
-//     }
-//     else
-//     {
-//         printf("Failed to open GPIO chip\n");
-//     }
-
-//     lgChipInfo_t cInfo;
-
-//     int status = lgGpioGetChipInfo(h, &cInfo);
-
-//     if (status == LG_OKAY)
-//     {
-//         // printf("lines=%d name=%s label=%s\n",
-//         // cInfo.lines, cInfo.name, cInfo.label);
-//     }
-//     else
-//     {
-//         printf("Did not successfully\n");
-//     }
-
-//     // lgLineInfo_t lInfo;
-//     // for(int gpio = 0; gpio < 54; gpio++)
-//     // {
-//     //     status = lgGpioGetLineInfo(h, gpio, &lInfo);
-
-//     //     if (status == LG_OKAY)
-//     //     {
-//     //         printf("lFlags=%d name=%s user=%s\n",
-//     //         lInfo.lFlags, lInfo.name, lInfo.user);
-//     //     }
-//     // }
-    
-//     status = lgGpioClaimOutput(h, 0, X_MOTOR_PIN, 0);
-//     if(status != LG_OKAY) { printf("Error: status non 0\n"); }
-//     status = lgGpioClaimOutput(h, 0, X_MOTOR_DIR_PIN, 0);
-//     if(status != LG_OKAY) { printf("Error: status non 0\n"); }
-//     status = lgGpioClaimOutput(h, 0, Y_MOTOR_PIN, 0);
-//     if(status != LG_OKAY) { printf("Error: status non 0\n"); }
-//     status = lgGpioClaimOutput(h, 0, Y_MOTOR_DIR_PIN, 0);
-//     if(status != LG_OKAY) { printf("Error: status non 0\n"); }
-//     status = lgGpioClaimOutput(h, 0, Z_MOTOR_PIN, 0);
-//     if(status != LG_OKAY) { printf("Error: status non 0\n"); }
-
-//     char sel;
-//     uint32_t dir;
-//     uint32_t motorPin = 0;
-//     uint32_t motorDirPin = 0;
-//     uint32_t lift = 0;
-//     for(;;)
-//     {
-//         printf("Enter Charactor Command \nx (Move X Motor)\ny (Move Y Motor)\nz (Move Z Motor)\nr (Start Demo Routine)\n");
-//         std::cin >> sel;
-//         printf("Enter Direction Command \n1 (Positive Direction) \n0 (Negative Direction)\n");
-//         std::cin >> dir;
-//         lift = 0;
-//         printf("Read %c and %d\n", sel, dir);
-
-//         if(sel == 'x')
-//         {
-//             motorPin = X_MOTOR_PIN;
-//             motorDirPin = X_MOTOR_DIR_PIN;
-//         }
-//         else if (sel == 'y')
-//         {
-//             motorPin = Y_MOTOR_PIN;
-//             motorDirPin = Y_MOTOR_DIR_PIN;
-//         }
-//         else if(sel == 'z')
-//         {
-//             motorPin = Z_MOTOR_PIN;
-//         }
-//         else if(sel == 'l')
-//         {
-//             motorPin = Y_MOTOR_PIN;
-//             motorDirPin = Y_MOTOR_DIR_PIN;
-//             lift = 1;
-//         }
-//         else if(sel == 'r')
-//         {
-//             //Extend Z
-//             move(h, Z_MOTOR_PIN, Y_MOTOR_DIR_PIN, 0, 0);
-//             // Lift on Y
-//             move(h, Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, 1, 1);
-//             // Retract Z
-//             move(h, Z_MOTOR_PIN, Y_MOTOR_DIR_PIN, 0, 0);
-//             // Move Y Full Step
-//             move(h, Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, dir, 0);
-//             // Move along X 
-//             move(h, X_MOTOR_PIN, X_MOTOR_DIR_PIN, !dir, 0);
-//             move(h, X_MOTOR_PIN, X_MOTOR_DIR_PIN, !dir, 0);
-//             // Extend Z
-//             move(h, Z_MOTOR_PIN, Y_MOTOR_DIR_PIN, 0, 0);
-//             // Put down box
-//             move(h, Y_MOTOR_PIN, Y_MOTOR_DIR_PIN, 0, 1);
-//             // Retract Z
-//             move(h, Z_MOTOR_PIN, Y_MOTOR_DIR_PIN, 0, 0);
-//         }
-//         else if(sel == 'u')
-//         {
-
-//         }
-//         if(sel != 'r' && sel != 'u')
-//         {
-//             // printf("motorPin: %d\nmotorDirPin: %d\n", motorPin, motorDirPin);
-//             move(h, motorPin, motorDirPin, dir, lift);
-//         }
-
-//     }
-
-//     return 0;
-// }
-
+typedef struct MovementInfo
+{
+    uint32_t motorPin; 
+    uint32_t motorDirPin; 
+    uint32_t direction; 
+    uint32_t pulses;
+    uint32_t motorSpeed;
+    bool pollSensor;
+    bool sensorPushed;
+} MovementInfo;
 
 Motor::Motor() { }
 
-uint32_t Motor::move(uint32_t motorPin, uint32_t motorDirPin, uint32_t direction, uint32_t pulses, uint32_t motorSpeed)
+static void motorRampUp(MovementInfo *movementInfo)
 {
-    //Dont do if Z motor
-    if(motorPin != Z_MOTOR_PIN)
+    uint32_t motorPin = movementInfo->motorPin; 
+    uint32_t pulses = movementInfo->pulses;
+    uint32_t motorSpeedFinal = movementInfo->motorSpeed;
+    bool pollSensor = movementInfo->pollSensor;
+
+    uint32_t segments = 20;
+    uint32_t numPulsesPerSeg = pulses/segments;
+    uint32_t motorSpeed = (segments+1)*motorSpeedFinal/4;
+
+    uint32_t pollCounter = 0;
+    for(uint32_t i = 0; i < segments; i++)
     {
-        lgGpioWrite(h, motorDirPin, direction);
-        usleep(10);
+        for(uint32_t i = 0; i < numPulsesPerSeg; i++)
+        {
+            if(pollSensor && pollCounter > 4)
+            {
+                bool contactVal = 0;
+                if(motorPin == X_MOTOR_PIN)
+                    get_x_sensor_value(contactVal);
+                if(motorPin == Y_MOTOR_PIN)
+                    get_y_sensor_value(contactVal);
+                if(motorPin == Z_MOTOR_PIN)
+                    get_z_sensor_value(contactVal);
+                if(contactVal)
+                {
+                    std::cout << "Contact Sensor on " << ((motorPin == 13) ? "x" : "y") << " pushed\nExiting rampUp function\n";
+                    movementInfo->sensorPushed = true;
+                    return;
+                }
+                pollCounter = 0;
+            }
+            lgGpioWrite(lgGpioHandle, motorPin, 1);
+            usleep(motorSpeed);
+            lgGpioWrite(lgGpioHandle, motorPin, 0);
+            usleep(motorSpeed);
+            pollCounter++;
+        }
+        motorSpeed -= motorSpeedFinal;
+        if(motorSpeed < motorSpeedFinal) motorSpeed = motorSpeedFinal;
     }
-    for(uint32_t i = 0; i < pulses; i++)
+    // std::cout << "Final Motor Speed Reached during ramp up: " << motorSpeed << "ramp pulses : " << pulses << "\n";
+}
+
+static void motorFlatRampUp(MovementInfo * movementInfo)
+{
+
+    uint32_t motorPin = movementInfo->motorPin;
+    bool pollSensor = movementInfo->pollSensor;
+    for(int i = 0; i < 5; i++)
     {
-        lgGpioWrite(h, motorPin, 1);
-        usleep(motorSpeed);
-        lgGpioWrite(h, motorPin, 0);
-        usleep(motorSpeed);
+        if(pollSensor)
+        {
+            bool contactVal = 0;
+            if(motorPin == X_MOTOR_PIN)
+                get_x_sensor_value(contactVal);
+            if(motorPin == Y_MOTOR_PIN)
+                get_y_sensor_value(contactVal);
+            if(motorPin == Z_MOTOR_PIN)
+                get_z_sensor_value(contactVal);
+            if(contactVal)
+            {
+                std::cout << "Contact Sensor pushed\nExiting rampUp function\n";
+                movementInfo->sensorPushed = true;
+                return;
+            }
+        }
+        lgGpioWrite(lgGpioHandle, motorPin, 1);
+        usleep(1800);
+        lgGpioWrite(lgGpioHandle, motorPin, 0);
+        usleep(1800);
+    }
+
+    for(int i = 0; i < 5; i++)
+    {
+        if(pollSensor)
+        {
+            bool contactVal = 0;
+            if(motorPin == X_MOTOR_PIN)
+                get_x_sensor_value(contactVal);
+            if(motorPin == Y_MOTOR_PIN)
+                get_y_sensor_value(contactVal);
+            if(motorPin == Z_MOTOR_PIN)
+                get_z_sensor_value(contactVal);
+            if(contactVal)
+            {
+                std::cout << "Contact Sensor pushed\nExiting rampUp function\n";
+                movementInfo->sensorPushed = true;
+                return;
+            }
+        }
+        lgGpioWrite(lgGpioHandle, motorPin, 1);
+        usleep(1600);
+        lgGpioWrite(lgGpioHandle, motorPin, 0);
+        usleep(1600);
+    }
+
+    for(int i = 0; i < 5; i++)
+    {
+        if(pollSensor)
+        {
+            bool contactVal = 0;
+            if(motorPin == X_MOTOR_PIN)
+                get_x_sensor_value(contactVal);
+            if(motorPin == Y_MOTOR_PIN)
+                get_y_sensor_value(contactVal);
+            if(motorPin == Z_MOTOR_PIN)
+                get_z_sensor_value(contactVal);
+            if(contactVal)
+            {
+                std::cout << "Contact Sensor pushed\nExiting rampUp function\n";
+                movementInfo->sensorPushed = true;
+                return;
+            }
+        }
+        lgGpioWrite(lgGpioHandle, motorPin, 1);
+        usleep(1400);
+        lgGpioWrite(lgGpioHandle, motorPin, 0);
+        usleep(1400);
+    }
+
+    for(int i = 0; i < 5; i++)
+    {
+        if(pollSensor)
+        {
+            bool contactVal = 0;
+            if(motorPin == X_MOTOR_PIN)
+                get_x_sensor_value(contactVal);
+            if(motorPin == Y_MOTOR_PIN)
+                get_y_sensor_value(contactVal);
+            if(motorPin == Z_MOTOR_PIN)
+                get_z_sensor_value(contactVal);
+            if(contactVal)
+            {
+                std::cout << "Contact Sensor pushed\nExiting rampUp function\n";
+                movementInfo->sensorPushed = true;
+                return;
+            }
+        }
+        lgGpioWrite(lgGpioHandle, motorPin, 1);
+        usleep(1200);
+        lgGpioWrite(lgGpioHandle, motorPin, 0);
+        usleep(1200);
+    }
+
+    for(int i = 0; i < 5; i++)
+    {
+        if(pollSensor)
+        {
+            bool contactVal = 0;
+            if(motorPin == X_MOTOR_PIN)
+                get_x_sensor_value(contactVal);
+            if(motorPin == Y_MOTOR_PIN)
+                get_y_sensor_value(contactVal);
+            if(motorPin == Z_MOTOR_PIN)
+                get_z_sensor_value(contactVal);
+            if(contactVal)
+            {
+                std::cout << "Contact Sensor pushed\nExiting rampUp function\n";
+                movementInfo->sensorPushed = true;
+                return;
+            }
+        }
+        lgGpioWrite(lgGpioHandle, motorPin, 1);
+        usleep(1000);
+        lgGpioWrite(lgGpioHandle, motorPin, 0);
+        usleep(1000);
     }
 }
 
-uint32_t Motor::motorSetup()
+static void motorRampDown(MovementInfo * movementInfo)
+{
+    uint32_t motorPin = movementInfo->motorPin; 
+    uint32_t pulses = movementInfo->pulses;
+    uint32_t motorSpeed = movementInfo->motorSpeed;
+    bool pollSensor = movementInfo->pollSensor;
+
+    uint32_t segments = 20;
+    uint32_t numPulsesPerSeg = pulses/segments;
+    uint32_t pollCounter = 0;
+    for(uint32_t i = 0; i < segments; i++)
+    {
+        for(uint32_t i = 0; i < numPulsesPerSeg; i++)
+        {
+            if(pollSensor && pollCounter > 4)
+            {
+                bool contactVal = 0;
+                if(motorPin == X_MOTOR_PIN)
+                    get_x_sensor_value(contactVal);
+                if(motorPin == Y_MOTOR_PIN)
+                    get_y_sensor_value(contactVal);
+                if(motorPin == Z_MOTOR_PIN)
+                    get_z_sensor_value(contactVal);
+                if(contactVal)
+                {
+                    std::cout << "Contact Sensor on " << ((motorPin == 13) ? "x" : "y") << " pushed\nExiting rampDown function\n";
+                    movementInfo->sensorPushed = true;
+                    return;
+                }
+                pollCounter = 0;
+            }
+            lgGpioWrite(lgGpioHandle, motorPin, 1);
+            usleep(motorSpeed);
+            lgGpioWrite(lgGpioHandle, motorPin, 0);
+            usleep(motorSpeed);
+            pollCounter++;
+        }
+        motorSpeed += motorSpeed/10;
+    }
+    // std::cout << "Final Motor Speed Reached during ramp down: " << motorSpeed << "ramp pulses : " << pulses << "\n";
+}
+
+static void motorFlatRampDown(MovementInfo * movementInfo)
+{
+    bool pollSensor = movementInfo->pollSensor;
+    uint32_t motorPin = movementInfo->motorPin;
+    for(int i = 0; i < 5; i++)
+    {
+        if(pollSensor)
+        {
+            bool contactVal = 0;
+            if(motorPin == X_MOTOR_PIN)
+                get_x_sensor_value(contactVal);
+            if(motorPin == Y_MOTOR_PIN)
+                get_y_sensor_value(contactVal);
+            if(motorPin == Z_MOTOR_PIN)
+                get_z_sensor_value(contactVal);
+            if(contactVal)
+            {
+                std::cout << "Contact Sensor pushed\nExiting rampUp function\n";
+                movementInfo->sensorPushed = true;
+                return;
+            }
+        }
+        lgGpioWrite(lgGpioHandle, motorPin, 1);
+        usleep(1000);
+        lgGpioWrite(lgGpioHandle, motorPin, 0);
+        usleep(1000);
+    }
+
+    for(int i = 0; i < 5; i++)
+    {
+        if(pollSensor)
+        {
+            bool contactVal = 0;
+            if(motorPin == X_MOTOR_PIN)
+                get_x_sensor_value(contactVal);
+            if(motorPin == Y_MOTOR_PIN)
+                get_y_sensor_value(contactVal);
+            if(motorPin == Z_MOTOR_PIN)
+                get_z_sensor_value(contactVal);
+            if(contactVal)
+            {
+                std::cout << "Contact Sensor pushed\nExiting rampUp function\n";
+                movementInfo->sensorPushed = true;
+                return;
+            }
+        }
+        lgGpioWrite(lgGpioHandle, motorPin, 1);
+        usleep(1200);
+        lgGpioWrite(lgGpioHandle, motorPin, 0);
+        usleep(1200);
+    }
+
+    for(int i = 0; i < 5; i++)
+    {
+        if(pollSensor)
+        {
+            bool contactVal = 0;
+            if(motorPin == X_MOTOR_PIN)
+                get_x_sensor_value(contactVal);
+            if(motorPin == Y_MOTOR_PIN)
+                get_y_sensor_value(contactVal);
+            if(motorPin == Z_MOTOR_PIN)
+                get_z_sensor_value(contactVal);
+            if(contactVal)
+            {
+                std::cout << "Contact Sensor pushed\nExiting rampUp function\n";
+                movementInfo->sensorPushed = true;
+                return;
+            }
+        }
+        lgGpioWrite(lgGpioHandle, motorPin, 1);
+        usleep(1400);
+        lgGpioWrite(lgGpioHandle, motorPin, 0);
+        usleep(1400);
+    }
+
+    for(int i = 0; i < 5; i++)
+    {
+        if(pollSensor)
+        {
+            bool contactVal = 0;
+            if(motorPin == X_MOTOR_PIN)
+                get_x_sensor_value(contactVal);
+            if(motorPin == Y_MOTOR_PIN)
+                get_y_sensor_value(contactVal);
+            if(motorPin == Z_MOTOR_PIN)
+                get_z_sensor_value(contactVal);
+            if(contactVal)
+            {
+                std::cout << "Contact Sensor pushed\nExiting rampUp function\n";
+                movementInfo->sensorPushed = true;
+                return;
+            }
+        }
+        lgGpioWrite(lgGpioHandle, motorPin, 1);
+        usleep(1600);
+        lgGpioWrite(lgGpioHandle, motorPin, 0);
+        usleep(1600);
+    }
+
+    for(int i = 0; i < 5; i++)
+    {
+        if(pollSensor)
+        {
+            bool contactVal = 0;
+            if(motorPin == X_MOTOR_PIN)
+                get_x_sensor_value(contactVal);
+            if(motorPin == Y_MOTOR_PIN)
+                get_y_sensor_value(contactVal);
+            if(motorPin == Z_MOTOR_PIN)
+                get_z_sensor_value(contactVal);
+            if(contactVal)
+            {
+                std::cout << "Contact Sensor pushed\nExiting rampUp function\n";
+                movementInfo->sensorPushed = true;
+                return;
+            }
+        }
+        lgGpioWrite(lgGpioHandle, motorPin, 1);
+        usleep(1800);
+        lgGpioWrite(lgGpioHandle, motorPin, 0);
+        usleep(1800);
+    }
+}
+
+void *moveFuncFlat(void * moveParams)
+{
+    MovementInfo *movementInfo;
+    movementInfo = (MovementInfo*)moveParams;
+    uint32_t motorPin = movementInfo->motorPin;     
+    uint32_t pulsesTotal = movementInfo->pulses;
+    uint32_t motorSpeed = movementInfo->motorSpeed;
+    bool pollSensor = movementInfo->pollSensor;
+    uint32_t pollCounter = 0;
+
+    uint32_t rampPulses = 25;
+
+    motorFlatRampUp(movementInfo);
+
+    if(movementInfo->sensorPushed) pthread_exit(NULL);
+
+    for(uint32_t i = 0; i < pulsesTotal - 2*rampPulses; i++)
+    {
+        if(pollSensor && pollCounter > 4)
+        {
+            bool contactVal = 0;
+            if(motorPin == X_MOTOR_PIN)
+                get_x_sensor_value(contactVal);
+            if(motorPin == Y_MOTOR_PIN)
+                get_y_sensor_value(contactVal);
+            if(motorPin == Z_MOTOR_PIN)
+                get_z_sensor_value(contactVal);
+            if(contactVal)
+            {
+                // std::cout << "Contact Sensor on " << ((motorPin == 13) ? "x" : "y") << " pushed\nExiting movement function\n";
+                pthread_exit(NULL);
+            }
+            pollCounter = 0;
+        }
+        lgGpioWrite(lgGpioHandle, motorPin, 1);
+        usleep(motorSpeed);
+        lgGpioWrite(lgGpioHandle, motorPin, 0);
+        usleep(motorSpeed);
+        pollCounter++;
+    }
+    motorFlatRampDown(movementInfo);
+    pthread_exit(NULL);
+
+}
+
+void *moveFunc(void * moveParams)
+{
+    MovementInfo *movementInfo;
+    movementInfo = (MovementInfo*)moveParams;
+    uint32_t motorPin = movementInfo->motorPin;     
+    uint32_t pulsesTotal = movementInfo->pulses;
+    uint32_t motorSpeed = movementInfo->motorSpeed;
+    bool pollSensor = movementInfo->pollSensor;
+    uint32_t pollCounter = 0;
+
+    uint32_t rampPulses = .1 * pulsesTotal;
+    movementInfo->pulses = rampPulses/2;
+    motorRampUp(movementInfo);
+    if(movementInfo->sensorPushed) pthread_exit(NULL);
+    for(uint32_t i = 0; i < pulsesTotal - rampPulses; i++)
+    {
+        if(pollSensor && pollCounter > 4)
+        {
+            bool contactVal = 0;
+            if(motorPin == X_MOTOR_PIN)
+                get_x_sensor_value(contactVal);
+            if(motorPin == Y_MOTOR_PIN)
+                get_y_sensor_value(contactVal);
+            if(motorPin == Z_MOTOR_PIN)
+                get_z_sensor_value(contactVal);
+            if(contactVal)
+            {
+                // std::cout << "Contact Sensor on " << ((motorPin == 13) ? "x" : "y") << " pushed\nExiting movement function\n";
+                pthread_exit(NULL);
+            }
+            pollCounter = 0;
+        }
+        lgGpioWrite(lgGpioHandle, motorPin, 1);
+        usleep(motorSpeed);
+        lgGpioWrite(lgGpioHandle, motorPin, 0);
+        usleep(motorSpeed);
+        pollCounter++;
+    }    
+    motorRampDown(movementInfo);
+    pthread_exit(NULL);
+}
+
+uint32_t Motor::move(uint32_t motorPin, uint32_t motorDirPin, uint32_t direction, uint32_t pulses, uint32_t motorSpeed, bool pollSensor, pthread_t *ptid)
+{    
+    // std::cout << "Movement function called\n";
+    // std::cout << "Motor: MotorPin: " << motorPin << " Direction: " << direction << "\n";
+    lgGpioWrite(h, motorDirPin, direction);
+    usleep(10000);
+    // std::cout << "Motor: Pulses: " << pulses << "\n";
+    // std::cout << "Creating thread\n";
+    MovementInfo *mInfo = new MovementInfo{motorPin, motorDirPin, direction, pulses, motorSpeed, pollSensor, false};
+    pthread_create(ptid, NULL, &moveFuncFlat, (void*)mInfo);
+
+    return SUCCESS;
+}
+
+uint32_t Motor::pinSetup()
 {
     uint32_t returnValue = SUCCESS;
+    uint32_t status;
+    std::cout << "Running Motor Setup Routine\n";
     h = lgGpiochipOpen(4); // open /dev/gpiochip0
-
     if (h < 0) { EXIT_FUNCTION(returnValue, ERROR_MOTOR_GPIO_CHIP_OPEN); }
-    
+    lgGpioHandle = h;
     status = lgGpioClaimOutput(h, 0, X_MOTOR_PIN, 0);
     if(status != LG_OKAY) { EXIT_FUNCTION(returnValue, ERROR_MOTOR_GPIO_CLAIM_OUT); }
     status = lgGpioClaimOutput(h, 0, X_MOTOR_DIR_PIN, 0);
@@ -206,7 +479,18 @@ uint32_t Motor::motorSetup()
     if(status != LG_OKAY) { EXIT_FUNCTION(returnValue, ERROR_MOTOR_GPIO_CLAIM_OUT); }
     status = lgGpioClaimOutput(h, 0, Z_MOTOR_PIN, 0);
     if(status != LG_OKAY) { EXIT_FUNCTION(returnValue, ERROR_MOTOR_GPIO_CLAIM_OUT); }
-
+    status = lgGpioClaimOutput(h, 0, Z_MOTOR_DIR_PIN, 0);
+    if(status != LG_OKAY) { EXIT_FUNCTION(returnValue, ERROR_MOTOR_GPIO_CLAIM_OUT); }
+    status = lgGpioClaimInput(h, 0, X_CONTACT_SENSOR_PIN);
+    if(status != LG_OKAY) { EXIT_FUNCTION(returnValue, ERROR_MOTOR_GPIO_CLAIM_OUT); }
+    status = lgGpioClaimInput(h, 0, Y_CONTACT_SENSOR_PIN);
+    if(status != LG_OKAY) { EXIT_FUNCTION(returnValue, ERROR_MOTOR_GPIO_CLAIM_OUT); }
+    status = lgGpioClaimInput(h, 0, Z_CONTACT_SENSOR_PIN);
+    if(status != LG_OKAY) { EXIT_FUNCTION(returnValue, ERROR_MOTOR_GPIO_CLAIM_OUT); }
+    status = lgGpioClaimOutput(h, 0, LED_GREEN_PIN, 0);
+    if(status != LG_OKAY) { EXIT_FUNCTION(returnValue, ERROR_MOTOR_GPIO_CLAIM_OUT); }
+    status = lgGpioClaimOutput(h, 0, LED_RED_PIN, 0);
+    if(status != LG_OKAY) { EXIT_FUNCTION(returnValue, ERROR_MOTOR_GPIO_CLAIM_OUT); }
     EXIT_POINT
     return returnValue;
 
